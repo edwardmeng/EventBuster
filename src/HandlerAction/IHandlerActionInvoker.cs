@@ -6,10 +6,10 @@ namespace EventBuster
     {
         Type EventType { get; }
 
-        void Invoke(HandlerActionDescriptor descriptor, object evt);
+        void Invoke(HandlerActionContext context, object evt);
 
 #if !Net35
-        System.Threading.Tasks.Task InvokeAsync(HandlerActionDescriptor descriptor, object evt, System.Threading.CancellationToken token);
+        System.Threading.Tasks.Task InvokeAsync(HandlerActionContext context, object evt, System.Threading.CancellationToken token);
 #endif
     }
 }

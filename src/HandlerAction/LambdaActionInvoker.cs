@@ -4,6 +4,7 @@ namespace EventBuster
 {
     internal class LambdaActionInvoker<TEvent> : IHandlerActionInvoker
     {
+
         #region Fields
 
         private readonly Action<TEvent> _action;
@@ -51,7 +52,7 @@ namespace EventBuster
 
         public Type EventType => typeof(TEvent);
 
-        public void Invoke(HandlerActionDescriptor descriptor, object evt)
+        public void Invoke(HandlerActionContext context, object evt)
         {
             if (evt == null)
             {
@@ -74,13 +75,13 @@ namespace EventBuster
 #if !Net35
             else
             {
-                System.Threading.Tasks.Task.WaitAll(InvokeAsync(descriptor, evt, System.Threading.CancellationToken.None));
+                System.Threading.Tasks.Task.WaitAll(InvokeAsync(context, evt, System.Threading.CancellationToken.None));
             }
 #endif
         }
 
 #if !Net35
-        public async System.Threading.Tasks.Task InvokeAsync(HandlerActionDescriptor descriptor, object evt, System.Threading.CancellationToken token)
+        public async System.Threading.Tasks.Task InvokeAsync(HandlerActionContext context, object evt, System.Threading.CancellationToken token)
         {
             if (evt == null)
             {
@@ -88,7 +89,7 @@ namespace EventBuster
             }
             if (_action != null)
             {
-                Invoke(descriptor, evt);
+                Invoke(context, evt);
             }
             else
             {
@@ -113,6 +114,33 @@ namespace EventBuster
             }
         }
 #endif
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            var other = obj as LambdaActionInvoker<TEvent>;
+            if (other == null) return false;
+            if (!Equals(_action, other._action)) return false;
+#if !Net35
+            return Equals(_func, other._func) && Equals(_func2, other._func2);
+#else
+            return true;
+#endif
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = _action?.GetHashCode() ?? 0;
+#if !Net35
+                hashCode = (hashCode*397) ^ (_func?.GetHashCode() ?? 0);
+                hashCode = (hashCode*397) ^ (_func2?.GetHashCode() ?? 0);
+#endif
+                return hashCode;
+            }
+        }
 
         #endregion
     }

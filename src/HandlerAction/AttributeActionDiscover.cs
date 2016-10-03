@@ -88,9 +88,8 @@ namespace EventBuster
                         Invoker = invokerCreator(method),
                         Priority = attribute.Priority,
 #if !NetCore
-                        TransactionFlow = attribute.TransactionFlow,
+                        TransactionFlow = attribute.TransactionFlow
 #endif
-                        Services = serviceProvider
                     };
                 }
             }

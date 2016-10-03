@@ -80,20 +80,20 @@ namespace EventBuster
             Count++;
         }
 
-        public void Invoke(object evt)
+        public void Invoke(IServiceProvider serviceProvider, IDictionary<Type, object> instancePool, object evt)
         {
             foreach (var actionDescriptor in this)
             {
-                actionDescriptor.Invoker.Invoke(actionDescriptor, evt);
+                actionDescriptor.Invoker.Invoke(new HandlerActionContext(instancePool, actionDescriptor, serviceProvider), evt);
             }
         }
 
 #if !Net35
-        public async System.Threading.Tasks.Task InvokeAsync(object evt, System.Threading.CancellationToken token)
+        public async System.Threading.Tasks.Task InvokeAsync(IServiceProvider serviceProvider, IDictionary<Type, object> instancePool, object evt, System.Threading.CancellationToken token)
         {
             foreach (var actionDescriptor in this)
             {
-                await actionDescriptor.Invoker.InvokeAsync(actionDescriptor, evt, token);
+                await actionDescriptor.Invoker.InvokeAsync(new HandlerActionContext(instancePool, actionDescriptor, serviceProvider), evt, token);
             }
         }
 #endif

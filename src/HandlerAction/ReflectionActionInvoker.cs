@@ -69,6 +69,33 @@ namespace EventBuster
 
         public Type EventType { get; }
 
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            var other = obj as ReflectionActionInvoker;
+            if (other == null) return false;
+            if (!Equals(_methodInfo, other._methodInfo)) return false;
+            return _targetInstance != null ? Equals(_targetInstance, other._targetInstance) : _targetType == other._targetType;
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = _methodInfo.GetHashCode();
+                if (_targetInstance != null)
+                {
+                    hashCode = (hashCode * 397) ^ _targetInstance.GetHashCode();
+                }
+                else
+                {
+                    hashCode = (hashCode * 397) ^ _targetType.GetHashCode();
+                }
+                return hashCode;
+            }
+        }
+
 #if !Net35
         private bool IsAsyncMethod(MethodInfo method)
         {
@@ -93,7 +120,7 @@ namespace EventBuster
             }
         }
 
-        public void Invoke(HandlerActionDescriptor descriptor, object evt)
+        public void Invoke(HandlerActionContext context, object evt)
         {
             if (evt == null)
             {
@@ -102,7 +129,7 @@ namespace EventBuster
 #if !Net35
             if (IsAsyncMethod(_methodInfo))
             {
-                System.Threading.Tasks.Task.WaitAll(InvokeAsync(descriptor, evt, System.Threading.CancellationToken.None));
+                System.Threading.Tasks.Task.WaitAll(InvokeAsync(context, evt, System.Threading.CancellationToken.None));
             }
             else
 #endif
@@ -110,38 +137,15 @@ namespace EventBuster
                 ValidateEvent(evt);
                 using (var transaction =
 #if Net35
-                    descriptor.CreateTransactionScope()
+                    context.CreateTransactionScope()
 #elif Net451
-                    descriptor.CreateTransactionScope(System.Transactions.TransactionScopeAsyncFlowOption.Suppress)
+                    context.CreateTransactionScope(System.Transactions.TransactionScopeAsyncFlowOption.Suppress)
 #else
                     (IDisposable)null
 #endif
                     )
                 {
-                    if (!_methodInfo.IsStatic)
-                    {
-                        if (_targetInstance != null)
-                        {
-                            _executor.Execute(_targetInstance, new[] { evt });
-                        }
-                        else
-                        {
-                            var activator = (IHandlerActivator)descriptor.Services.GetService(typeof(IHandlerActivator));
-                            var instance = activator.Create(descriptor.Services, _targetType);
-                            try
-                            {
-                                _executor.Execute(instance, new[] { evt });
-                            }
-                            finally
-                            {
-                                activator.Release(instance);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        _executor.Execute(null, new[] { evt });
-                    }
+                    _executor.Execute(_methodInfo.IsStatic ? null : (_targetInstance ?? context.GetInstance(_targetType)), new[] { evt });
 #if !NetCore
                     transaction?.Complete();
 #endif
@@ -150,7 +154,7 @@ namespace EventBuster
         }
 
 #if !Net35
-        public async System.Threading.Tasks.Task InvokeAsync(HandlerActionDescriptor descriptor, object evt, System.Threading.CancellationToken token)
+        public async System.Threading.Tasks.Task InvokeAsync(HandlerActionContext context, object evt, System.Threading.CancellationToken token)
         {
             if (evt == null)
             {
@@ -159,7 +163,7 @@ namespace EventBuster
             token.ThrowIfCancellationRequested();
             if (!IsAsyncMethod(_methodInfo))
             {
-                Invoke(descriptor, evt);
+                Invoke(context, evt);
             }
             else
             {
@@ -168,7 +172,7 @@ namespace EventBuster
 #if NetCore
                     (IDisposable)null
 #else
-                    descriptor.CreateTransactionScope(System.Transactions.TransactionScopeAsyncFlowOption.Enabled)
+                    context.CreateTransactionScope(System.Transactions.TransactionScopeAsyncFlowOption.Enabled)
 #endif
                     )
                 {
@@ -178,30 +182,7 @@ namespace EventBuster
                     {
                         arguments.Add(token);
                     }
-                    if (!_methodInfo.IsStatic)
-                    {
-                        if (_targetInstance != null)
-                        {
-                            await (System.Threading.Tasks.Task)_executor.Execute(_targetInstance, arguments.ToArray());
-                        }
-                        else
-                        {
-                            var activator = (IHandlerActivator)descriptor.Services.GetService(typeof(IHandlerActivator));
-                            var instance = activator.Create(descriptor.Services, _targetType);
-                            try
-                            {
-                                await (System.Threading.Tasks.Task)_executor.Execute(instance, arguments.ToArray());
-                            }
-                            finally
-                            {
-                                activator.Release(instance);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        await (System.Threading.Tasks.Task)_executor.Execute(null, arguments.ToArray());
-                    }
+                    await (System.Threading.Tasks.Task)_executor.Execute(_methodInfo.IsStatic ? null : (_targetInstance ?? context.GetInstance(_targetType)), arguments.ToArray());
 #if !NetCore
                     transaction?.Complete();
 #endif

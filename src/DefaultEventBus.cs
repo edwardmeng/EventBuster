@@ -98,8 +98,7 @@ namespace EventBuster
         {
             _pool.Add(new HandlerActionDescriptor
             {
-                Invoker = invoker,
-                Services = ServiceProvider
+                Invoker = invoker
             });
         }
 
@@ -139,8 +138,7 @@ namespace EventBuster
         {
             _pool.Remove(new HandlerActionDescriptor
             {
-                Invoker = invoker,
-                Services = ServiceProvider
+                Invoker = invoker
             });
         }
 
@@ -151,47 +149,73 @@ namespace EventBuster
         public void Trigger<TEvent>(TEvent evt)
         {
             if (evt == null) throw new ArgumentNullException(nameof(evt));
-            var isFrameworkEvent = IsFrameworkEvent(evt);
-            if (!isFrameworkEvent)
+            var instancePool = new Dictionary<Type, object>();
+            try
             {
-                var triggeringGenericEvent = new EventTriggering<TEvent>(evt);
-                Trigger(triggeringGenericEvent);
-                if (triggeringGenericEvent.Cancel) return;
+                var isFrameworkEvent = IsFrameworkEvent(evt);
+                if (!isFrameworkEvent)
+                {
+                    var triggeringGenericEvent = new EventTriggering<TEvent>(evt);
+                    TriggerInternal(instancePool, triggeringGenericEvent);
+                    if (triggeringGenericEvent.Cancel) return;
 
-                var triggeringEvent = new EventTriggering(evt);
-                Trigger(triggeringEvent);
-                if (triggeringEvent.Cancel) return;
+                    var triggeringEvent = new EventTriggering(evt);
+                    TriggerInternal(instancePool, triggeringEvent);
+                    if (triggeringEvent.Cancel) return;
+                }
+                TriggerInternal(instancePool, evt);
+                if (!isFrameworkEvent)
+                {
+                    TriggerInternal(instancePool, new EventTriggered<TEvent>(evt));
+                    TriggerInternal(instancePool, new EventTriggered(evt));
+                }
             }
-            _pool.GetPipeline(typeof(TEvent)).Invoke(evt);
-            if (!isFrameworkEvent)
+            finally
             {
-                Trigger(new EventTriggered<TEvent>(evt));
-                Trigger(new EventTriggered(evt));
+                ReleaseInstances(instancePool);
             }
         }
 
+        private void TriggerInternal<TEvent>(IDictionary<Type, object> instancePool, TEvent evt)
+        {
+            _pool.GetPipeline(typeof(TEvent)).Invoke(ServiceProvider, instancePool, evt);
+        }
+
 #if !Net35
-        
+
         public async System.Threading.Tasks.Task TriggerAsync<TEvent>(TEvent evt, System.Threading.CancellationToken token)
         {
             if (evt == null) throw new ArgumentNullException(nameof(evt));
-            var isFrameworkEvent = IsFrameworkEvent(evt);
-            if (!isFrameworkEvent)
+            var instancePool = new Dictionary<Type, object>();
+            try
             {
-                var triggeringGenericEvent = new EventTriggering<TEvent>(evt);
-                await TriggerAsync(triggeringGenericEvent, token);
-                if (triggeringGenericEvent.Cancel) return;
+                var isFrameworkEvent = IsFrameworkEvent(evt);
+                if (!isFrameworkEvent)
+                {
+                    var triggeringGenericEvent = new EventTriggering<TEvent>(evt);
+                    await TriggerAsyncInternal(instancePool, triggeringGenericEvent, token);
+                    if (triggeringGenericEvent.Cancel) return;
 
-                var triggeringEvent = new EventTriggering(evt);
-                await TriggerAsync(triggeringEvent, token);
-                if (triggeringEvent.Cancel) return;
+                    var triggeringEvent = new EventTriggering(evt);
+                    await TriggerAsyncInternal(instancePool, triggeringEvent, token);
+                    if (triggeringEvent.Cancel) return;
+                }
+                await TriggerAsyncInternal(instancePool, evt, token);
+                if (!isFrameworkEvent)
+                {
+                    await TriggerAsyncInternal(instancePool, new EventTriggered<TEvent>(evt), token);
+                    await TriggerAsyncInternal(instancePool, new EventTriggered(evt), token);
+                }
             }
-            await _pool.GetPipeline(typeof(TEvent)).InvokeAsync(evt, token);
-            if (!isFrameworkEvent)
+            finally
             {
-                await TriggerAsync(new EventTriggered<TEvent>(evt), token);
-                await TriggerAsync(new EventTriggered(evt), token);
+                ReleaseInstances(instancePool);
             }
+        }
+
+        private async System.Threading.Tasks.Task TriggerAsyncInternal<TEvent>(IDictionary<Type, object> instancePool, TEvent evt, System.Threading.CancellationToken token)
+        {
+            await _pool.GetPipeline(typeof(TEvent)).InvokeAsync(ServiceProvider, instancePool, evt, token);
         }
 
 #endif
@@ -203,6 +227,18 @@ namespace EventBuster
 #else
             return Equals(evt.GetType().Assembly, GetType().Assembly);
 #endif
+        }
+
+        private void ReleaseInstances(IDictionary<Type, object> instancePool)
+        {
+            var activator = (IHandlerActivator)ServiceProvider.GetService(typeof(IHandlerActivator));
+            foreach (var instance in instancePool.Values)
+            {
+                if (instance != null)
+                {
+                    activator.Release(instance);
+                }
+            }
         }
 
         #endregion

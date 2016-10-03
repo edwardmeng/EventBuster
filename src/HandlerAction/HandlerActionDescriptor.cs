@@ -8,46 +8,10 @@ namespace EventBuster
 
         public IHandlerActionInvoker Invoker { get; set; }
 
-        public IServiceProvider Services { get; set; }
-
         public Type EventType => Invoker?.EventType;
 
 #if !NetCore
         public TransactionFlowOption TransactionFlow { get; set; } = TransactionFlowOption.Allowed;
-
-#if Net35
-        internal System.Transactions.TransactionScope CreateTransactionScope()
-        {
-            if (TransactionFlow == TransactionFlowOption.NotAllowed)
-            {
-                if (System.Transactions.Transaction.Current != null)
-                {
-                    return new System.Transactions.TransactionScope(System.Transactions.TransactionScopeOption.Suppress);
-                }
-            }
-            else if (TransactionFlow == TransactionFlowOption.Mandatory)
-            {
-                return new System.Transactions.TransactionScope(System.Transactions.TransactionScopeOption.Required);
-            }
-            return null;
-        }
-#else
-        internal System.Transactions.TransactionScope CreateTransactionScope(System.Transactions.TransactionScopeAsyncFlowOption asyncFlowOption)
-        {
-            if (TransactionFlow == TransactionFlowOption.NotAllowed)
-            {
-                if (System.Transactions.Transaction.Current != null)
-                {
-                    return new System.Transactions.TransactionScope(System.Transactions.TransactionScopeOption.Suppress, asyncFlowOption);
-                }
-            }
-            else if (TransactionFlow == TransactionFlowOption.Mandatory)
-            {
-                return new System.Transactions.TransactionScope(System.Transactions.TransactionScopeOption.Required, asyncFlowOption);
-            }
-            return null;
-        }
-#endif
 #endif
 
         public override bool Equals(object obj)

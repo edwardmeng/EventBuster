@@ -61,6 +61,9 @@
     <Compile Include="..\..\..\src\HandlerAction\ClosedGenericMatcher.cs">
       <Link>HandlerAction\ClosedGenericMatcher.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\src\HandlerAction\HandlerActionContext.cs">
+      <Link>HandlerAction\HandlerActionContext.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\src\HandlerAction\HandlerActionPipeline.cs">
       <Link>HandlerAction\HandlerActionPipeline.cs</Link>
     </Compile>
