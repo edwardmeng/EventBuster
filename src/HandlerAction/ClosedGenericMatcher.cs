@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 
 namespace EventBuster
 {
@@ -52,15 +53,25 @@ namespace EventBuster
 
         private static bool IsGenericInstantiation(Type candidate, Type interfaceType)
         {
+#if NetCore
+            var reflectingCandidate = candidate.GetTypeInfo();
+#else
+            var reflectingCandidate = candidate;
+#endif
             return
-                candidate.IsGenericType &&
-                candidate.GetGenericTypeDefinition() == interfaceType;
+                reflectingCandidate.IsGenericType &&
+                reflectingCandidate.GetGenericTypeDefinition() == interfaceType;
         }
 
         private static Type GetGenericInstantiation(Type queryType, Type interfaceType)
         {
             Type bestMatch = null;
+#if NetCore
+            var reflectingQueryType = queryType.GetTypeInfo();
+            var interfaces = reflectingQueryType.ImplementedInterfaces;
+#else
             var interfaces = queryType.GetInterfaces();
+#endif
             foreach (var @interface in interfaces)
             {
                 if (IsGenericInstantiation(@interface, interfaceType))
@@ -87,7 +98,11 @@ namespace EventBuster
             }
 
             // BaseType will be null for object and interfaces, which means we've reached 'bottom'.
+#if NetCore
+            var baseType = reflectingQueryType.BaseType;
+#else
             var baseType = queryType.BaseType;
+#endif
             if (baseType == null)
             {
                 return null;

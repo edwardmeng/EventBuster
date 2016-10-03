@@ -50,5 +50,20 @@ namespace EventBuster
         {
             throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Strings.ValueInterfaceAbstractOrOpenGenericTypesCannotBeActivated, handlerType.FullName, activatorType.FullName));
         }
+
+        public static void ThrowActivatorCannotResolveParameterException(Type parameterType, Type declareType)
+        {
+            throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Strings.Activator_CannotResolveParameter, parameterType, declareType));
+        }
+
+        public static void ThrowActivatorCannotLocateConstructorException(Type instanceType)
+        {
+            throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Strings.Activator_CannotLocateConstructor, instanceType));
+        }
+
+        public static void ThrowActivatorAmbiguousConstructorsException(Type instanceType)
+        {
+            throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Strings.Activator_AmbiguousConstructors, instanceType));
+        }
     }
 }

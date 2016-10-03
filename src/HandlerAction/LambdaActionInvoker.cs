@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace EventBuster
 {
@@ -9,8 +7,10 @@ namespace EventBuster
         #region Fields
 
         private readonly Action<TEvent> _action;
-        private readonly Func<TEvent, Task> _func;
-        private readonly Func<TEvent, CancellationToken, Task> _func2;
+#if !Net35
+        private readonly Func<TEvent, System.Threading.Tasks.Task> _func;
+        private readonly Func<TEvent, System.Threading.CancellationToken, System.Threading.Tasks.Task> _func2;
+#endif
 
         #endregion
 
@@ -25,7 +25,8 @@ namespace EventBuster
             _action = action;
         }
 
-        public LambdaActionInvoker(Func<TEvent, Task> func)
+#if !Net35
+        public LambdaActionInvoker(Func<TEvent, System.Threading.Tasks.Task> func)
         {
             if (func == null)
             {
@@ -34,7 +35,7 @@ namespace EventBuster
             _func = func;
         }
 
-        public LambdaActionInvoker(Func<TEvent, CancellationToken, Task> func)
+        public LambdaActionInvoker(Func<TEvent, System.Threading.CancellationToken, System.Threading.Tasks.Task> func)
         {
             if (func == null)
             {
@@ -42,6 +43,7 @@ namespace EventBuster
             }
             _func2 = func;
         }
+#endif
 
         #endregion
 
@@ -69,13 +71,16 @@ namespace EventBuster
                 }
                 _action.Invoke(eventArgs);
             }
+#if !Net35
             else
             {
-                Task.WaitAll(InvokeAsync(descriptor, evt, CancellationToken.None));
+                System.Threading.Tasks.Task.WaitAll(InvokeAsync(descriptor, evt, System.Threading.CancellationToken.None));
             }
+#endif
         }
 
-        public async Task InvokeAsync(HandlerActionDescriptor descriptor, object evt, CancellationToken token)
+#if !Net35
+        public async System.Threading.Tasks.Task InvokeAsync(HandlerActionDescriptor descriptor, object evt, System.Threading.CancellationToken token)
         {
             if (evt == null)
             {
@@ -107,7 +112,8 @@ namespace EventBuster
                 }
             }
         }
- 
+#endif
+
         #endregion
     }
 }

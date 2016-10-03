@@ -11,10 +11,13 @@ namespace EventBuster
         /// <value>One of the <see cref="HandlerPriority"/> values. The default value is <see cref="HandlerPriority.Normal"/>.</value>
         public HandlerPriority Priority { get; set; } = HandlerPriority.Normal;
 
+#if !NetCore
+        
         /// <summary>
         /// Gets a value that indicates whether the incoming transaction is supported.
         /// </summary>
         /// <value>A <see cref="TransactionFlowOption"/> that indicates whether the incoming transaction is supported.</value>
         public TransactionFlowOption TransactionFlow { get; set; } = TransactionFlowOption.Allowed;
+#endif
     }
 }

@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Transactions;
 
 namespace EventBuster
 {
@@ -27,7 +23,18 @@ namespace EventBuster
                 throw new ArgumentNullException(nameof(methodInfo));
             }
             _methodInfo = methodInfo;
-            _targetType = targetType ?? methodInfo.ReflectedType;
+            if (targetType != null)
+            {
+                _targetType = targetType;
+            }
+            else
+            {
+#if NetCore
+                _targetType = methodInfo.DeclaringType;
+#else
+                _targetType = methodInfo.ReflectedType;
+#endif
+            }
             _executor = ObjectMethodExecutor.Create(methodInfo, targetType);
             EventType = methodInfo.GetParameters()[0].ParameterType;
         }
@@ -40,7 +47,18 @@ namespace EventBuster
             }
             _methodInfo = methodInfo;
             _targetInstance = targetInstance;
-            _targetType = targetInstance?.GetType() ?? _methodInfo.ReflectedType;
+            if (targetInstance != null)
+            {
+                _targetType = targetInstance.GetType();
+            }
+            else
+            {
+#if NetCore
+                _targetType = methodInfo.DeclaringType;
+#else
+                _targetType = methodInfo.ReflectedType;
+#endif
+            }
             _executor = ObjectMethodExecutor.Create(methodInfo, _targetType);
             EventType = methodInfo.GetParameters()[0].ParameterType;
         }
@@ -51,6 +69,30 @@ namespace EventBuster
 
         public Type EventType { get; }
 
+#if !Net35
+        private bool IsAsyncMethod(MethodInfo method)
+        {
+#if NetCore
+            return typeof(System.Threading.Tasks.Task).GetTypeInfo().IsAssignableFrom(method.ReturnType.GetTypeInfo());
+#else
+            return typeof(System.Threading.Tasks.Task).IsAssignableFrom(method.ReturnType);
+#endif
+        }
+
+#endif
+
+        private void ValidateEvent(object evt)
+        {
+#if NetCore
+            if (!EventType.GetTypeInfo().IsAssignableFrom(evt.GetType().GetTypeInfo()))
+#else
+            if (!EventType.IsInstanceOfType(evt))
+#endif
+            {
+                ThrowHelper.ThrowWrongValueTypeArgumentException(evt, EventType);
+            }
+        }
+
         public void Invoke(HandlerActionDescriptor descriptor, object evt)
         {
             if (evt == null)
@@ -58,18 +100,23 @@ namespace EventBuster
                 throw new ArgumentNullException(nameof(evt));
             }
 #if !Net35
-            if (typeof(Task).IsAssignableFrom(_methodInfo.ReturnType))
+            if (IsAsyncMethod(_methodInfo))
             {
-                Task.WaitAll(InvokeAsync(descriptor, evt, CancellationToken.None));
+                System.Threading.Tasks.Task.WaitAll(InvokeAsync(descriptor, evt, System.Threading.CancellationToken.None));
             }
             else
 #endif
             {
-                if (!EventType.IsInstanceOfType(evt))
-                {
-                    ThrowHelper.ThrowWrongValueTypeArgumentException(evt, EventType);
-                }
-                using (var transaction = descriptor.CreateTransactionScope(TransactionScopeAsyncFlowOption.Suppress))
+                ValidateEvent(evt);
+                using (var transaction =
+#if Net35
+                    descriptor.CreateTransactionScope()
+#elif Net451
+                    descriptor.CreateTransactionScope(System.Transactions.TransactionScopeAsyncFlowOption.Suppress)
+#else
+                    (IDisposable)null
+#endif
+                    )
                 {
                     if (!_methodInfo.IsStatic)
                     {
@@ -95,34 +142,39 @@ namespace EventBuster
                     {
                         _executor.Execute(null, new[] { evt });
                     }
+#if !NetCore
                     transaction?.Complete();
+#endif
                 }
             }
         }
 
 #if !Net35
-        public async Task InvokeAsync(HandlerActionDescriptor descriptor, object evt, CancellationToken token)
+        public async System.Threading.Tasks.Task InvokeAsync(HandlerActionDescriptor descriptor, object evt, System.Threading.CancellationToken token)
         {
             if (evt == null)
             {
                 throw new ArgumentNullException(nameof(evt));
             }
             token.ThrowIfCancellationRequested();
-            if (!typeof(Task).IsAssignableFrom(_methodInfo.ReturnType))
+            if (!IsAsyncMethod(_methodInfo))
             {
                 Invoke(descriptor, evt);
             }
             else
             {
-                if (!EventType.IsInstanceOfType(evt))
-                {
-                    ThrowHelper.ThrowWrongValueTypeArgumentException(evt, EventType);
-                }
-                using (var transaction = descriptor.CreateTransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                ValidateEvent(evt);
+                using (var transaction =
+#if NetCore
+                    (IDisposable)null
+#else
+                    descriptor.CreateTransactionScope(System.Transactions.TransactionScopeAsyncFlowOption.Enabled)
+#endif
+                    )
                 {
                     var parameters = _methodInfo.GetParameters();
-                    var arguments = new List<object> { evt };
-                    if (parameters.Length == 2 && parameters[1].ParameterType == typeof(CancellationToken))
+                    var arguments = new System.Collections.Generic.List<object> { evt };
+                    if (parameters.Length == 2 && parameters[1].ParameterType == typeof(System.Threading.CancellationToken))
                     {
                         arguments.Add(token);
                     }
@@ -130,7 +182,7 @@ namespace EventBuster
                     {
                         if (_targetInstance != null)
                         {
-                            await (Task)_executor.Execute(_targetInstance, arguments.ToArray());
+                            await (System.Threading.Tasks.Task)_executor.Execute(_targetInstance, arguments.ToArray());
                         }
                         else
                         {
@@ -138,7 +190,7 @@ namespace EventBuster
                             var instance = activator.Create(descriptor.Services, _targetType);
                             try
                             {
-                                await (Task)_executor.Execute(instance, arguments.ToArray());
+                                await (System.Threading.Tasks.Task)_executor.Execute(instance, arguments.ToArray());
                             }
                             finally
                             {
@@ -148,9 +200,11 @@ namespace EventBuster
                     }
                     else
                     {
-                        await (Task)_executor.Execute(null, arguments.ToArray());
+                        await (System.Threading.Tasks.Task)_executor.Execute(null, arguments.ToArray());
                     }
+#if !NetCore
                     transaction?.Complete();
+#endif
                 }
             }
         }

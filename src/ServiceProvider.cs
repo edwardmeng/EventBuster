@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace EventBuster
 {
@@ -42,7 +43,7 @@ namespace EventBuster
 
         public virtual ServiceProvider Add(Type serviceType, Type implementationType)
         {
-            var factory = ActivatorUtilities.CreateFactory(implementationType, Type.EmptyTypes);
+            var factory = ActivatorUtilities.CreateFactory(implementationType, new Type[0]);
             return Add(serviceType, () => factory(this,new object[0]));
         }
 
@@ -59,11 +60,20 @@ namespace EventBuster
         private object GetMultiService(Type collectionType)
         {
             Func<object> func;
-            if (!collectionType.IsGenericType || !(collectionType.GetGenericTypeDefinition() == typeof(IEnumerable<>)))
+#if NetCore
+            var reflectingCollectionType = collectionType.GetTypeInfo();
+#else
+            var reflectingCollectionType = collectionType;
+#endif
+            if (!reflectingCollectionType.IsGenericType || reflectingCollectionType.GetGenericTypeDefinition() != typeof(IEnumerable<>))
             {
                 return null;
             }
+#if NetCore
+            var key = reflectingCollectionType.GenericTypeArguments.Single();
+#else
             var key = collectionType.GetGenericArguments().Single();
+#endif
             var list = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(key));
             if (_services.TryGetValue(key, out func))
             {

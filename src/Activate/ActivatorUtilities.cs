@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Runtime.ExceptionServices;
 
 namespace EventBuster
 {
@@ -20,8 +19,7 @@ namespace EventBuster
             var service = sp.GetService(type);
             if (service == null && !isDefaultParameterRequired)
             {
-                var message = $"Unable to resolve service for type '{type}' while attempting to activate '{requiredBy}'.";
-                throw new InvalidOperationException(message);
+                ThrowHelper.ThrowActivatorCannotResolveParameterException(type, requiredBy);
             }
             return service;
         }
@@ -43,18 +41,26 @@ namespace EventBuster
 
                 if (parameterMap[i] != null)
                 {
+#if Net35
+                    constructorArguments[i] = Expression.ArrayIndex(factoryArgumentArray, Expression.Constant(parameterMap[i]));
+#else
                     constructorArguments[i] = Expression.ArrayAccess(factoryArgumentArray, Expression.Constant(parameterMap[i]));
+#endif
                 }
                 else
                 {
+#if Net35
+                    var constructorParameterHasDefault = false;
+#else
                     var constructorParameterHasDefault = constructorParameters[i].HasDefaultValue;
+#endif
                     var parameterTypeExpression = new[] { serviceProvider,
                         Expression.Constant(parameterType, typeof(Type)),
                         Expression.Constant(constructor.DeclaringType, typeof(Type)),
                         Expression.Constant(constructorParameterHasDefault) };
                     constructorArguments[i] = Expression.Call(GetServiceInfo, parameterTypeExpression);
                 }
-
+#if !Net35
                 // Support optional constructor arguments by passing in the default value
                 // when the argument would otherwise be null.
                 if (constructorParameters[i].HasDefaultValue)
@@ -62,6 +68,7 @@ namespace EventBuster
                     var defaultValueExpression = Expression.Constant(constructorParameters[i].DefaultValue);
                     constructorArguments[i] = Expression.Coalesce(constructorArguments[i], defaultValueExpression);
                 }
+#endif
 
                 constructorArguments[i] = Expression.Convert(constructorArguments[i], parameterType);
             }
@@ -73,20 +80,19 @@ namespace EventBuster
         {
             matchingConstructor = null;
             parameterMap = null;
-
-            foreach (var constructor in instanceType.GetTypeInfo().DeclaredConstructors)
+#if NetCore
+            var constructors = instanceType.GetTypeInfo().DeclaredConstructors.Where(ctor => !ctor.IsStatic && ctor.IsPublic);
+#else
+            var constructors = instanceType.GetConstructors();
+#endif
+            foreach (var constructor in constructors)
             {
-                if (constructor.IsStatic || !constructor.IsPublic)
-                {
-                    continue;
-                }
-
                 int?[] tempParameterMap;
                 if (TryCreateParameterMap(constructor.GetParameters(), argumentTypes, out tempParameterMap))
                 {
                     if (matchingConstructor != null)
                     {
-                        throw new InvalidOperationException($"Multiple constructors accepting all given argument types have been found in type '{instanceType}'. There should only be one applicable constructor.");
+                        ThrowHelper.ThrowActivatorAmbiguousConstructorsException(instanceType);
                     }
 
                     matchingConstructor = constructor;
@@ -96,8 +102,7 @@ namespace EventBuster
 
             if (matchingConstructor == null)
             {
-                var message = $"A suitable constructor for type '{instanceType}' could not be located. Ensure the type is concrete and services are registered for all parameters of a public constructor.";
-                throw new InvalidOperationException(message);
+                ThrowHelper.ThrowActivatorCannotLocateConstructorException(instanceType);
             }
         }
 
@@ -110,7 +115,11 @@ namespace EventBuster
             for (var i = 0; i < argumentTypes.Length; i++)
             {
                 var foundMatch = false;
+#if NetCore
                 var givenParameter = argumentTypes[i].GetTypeInfo();
+#else
+                var givenParameter = argumentTypes[i];
+#endif
 
                 for (var j = 0; j < constructorParameters.Length; j++)
                 {
@@ -119,8 +128,12 @@ namespace EventBuster
                         // This ctor parameter has already been matched
                         continue;
                     }
-
-                    if (constructorParameters[j].ParameterType.GetTypeInfo().IsAssignableFrom(givenParameter))
+#if NetCore
+                    var matchParameter = constructorParameters[j].ParameterType.GetTypeInfo().IsAssignableFrom(givenParameter);
+#else
+                    var matchParameter = constructorParameters[j].ParameterType.IsAssignableFrom(givenParameter);
+#endif
+                    if (matchParameter)
                     {
                         foundMatch = true;
                         parameterMap[j] = i;
@@ -148,12 +161,14 @@ namespace EventBuster
         {
             int bestLength = -1;
             ConstructorMatcher bestMatcher = null;
-
-            foreach (var matcher in instanceType
-                .GetTypeInfo()
-                .DeclaredConstructors
+#if NetCore
+            var contructorMatchers = instanceType.GetTypeInfo().DeclaredConstructors
                 .Where(c => !c.IsStatic && c.IsPublic)
-                .Select(constructor => new ConstructorMatcher(constructor)))
+                .Select(constructor => new ConstructorMatcher(constructor));
+#else
+            var contructorMatchers = instanceType.GetConstructors().Select(constructor => new ConstructorMatcher(constructor));
+#endif
+            foreach (var matcher in contructorMatchers)
             {
                 var length = matcher.Match(parameters);
                 if (length == -1)
@@ -169,8 +184,7 @@ namespace EventBuster
 
             if (bestMatcher == null)
             {
-                var message = $"A suitable constructor for type '{instanceType}' could not be located. Ensure the type is concrete and services are registered for all parameters of a public constructor.";
-                throw new InvalidOperationException(message);
+                ThrowHelper.ThrowActivatorCannotLocateConstructorException(instanceType);
             }
 
             return bestMatcher.CreateInstance(provider);
@@ -262,13 +276,22 @@ namespace EventBuster
                 var applyExactLength = 0;
                 for (var givenIndex = 0; givenIndex != givenParameters.Length; givenIndex++)
                 {
+#if NetCore
                     var givenType = givenParameters[givenIndex] == null ? null : givenParameters[givenIndex].GetType().GetTypeInfo();
+#else        
+                    var givenType = givenParameters[givenIndex] == null ? null : givenParameters[givenIndex].GetType();
+#endif
                     var givenMatched = false;
 
                     for (var applyIndex = applyIndexStart; givenMatched == false && applyIndex != _parameters.Length; ++applyIndex)
                     {
                         if (_parameterValuesSet[applyIndex] == false &&
-                            _parameters[applyIndex].ParameterType.GetTypeInfo().IsAssignableFrom(givenType))
+#if NetCore
+                            _parameters[applyIndex].ParameterType.GetTypeInfo().IsAssignableFrom(givenType)
+#else
+                            _parameters[applyIndex].ParameterType.IsAssignableFrom(givenType)
+#endif
+                            )
                         {
                             givenMatched = true;
                             _parameterValuesSet[applyIndex] = true;
@@ -301,14 +324,18 @@ namespace EventBuster
                         var value = provider.GetService(_parameters[index].ParameterType);
                         if (value == null)
                         {
+#if Net35
+                            ThrowHelper.ThrowActivatorCannotResolveParameterException(_parameters[index].ParameterType, _constructor.DeclaringType);
+#else
                             if (!_parameters[index].HasDefaultValue)
                             {
-                                throw new InvalidOperationException($"Unable to resolve service for type '{_parameters[index].ParameterType}' while attempting to activate '{_constructor.DeclaringType}'.");
+                                ThrowHelper.ThrowActivatorCannotResolveParameterException(_parameters[index].ParameterType, _constructor.DeclaringType);
                             }
                             else
                             {
                                 _parameterValues[index] = _parameters[index].DefaultValue;
                             }
+#endif
                         }
                         else
                         {
@@ -317,16 +344,20 @@ namespace EventBuster
                     }
                 }
 
+#if !Net35
                 try
                 {
                     return _constructor.Invoke(_parameterValues);
                 }
                 catch (Exception ex)
                 {
-                    ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                    System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
                     // The above line will always throw, but the compiler requires we throw explicitly.
                     throw;
                 }
+#else
+                return _constructor.Invoke(_parameterValues);
+#endif
             }
         }
     }

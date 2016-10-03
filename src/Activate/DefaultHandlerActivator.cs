@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 
 namespace EventBuster
 {
@@ -8,7 +9,12 @@ namespace EventBuster
 
         public object Create(IServiceProvider serviceProvider, Type handlerType)
         {
-            if (handlerType.IsValueType || handlerType.IsInterface || handlerType.IsAbstract || (handlerType.IsGenericType && handlerType.IsGenericTypeDefinition))
+#if NetCore
+            var reflectingHandlerType = handlerType.GetTypeInfo();
+#else
+            var reflectingHandlerType = handlerType;
+#endif
+            if (reflectingHandlerType.IsValueType || reflectingHandlerType.IsInterface || reflectingHandlerType.IsAbstract || (reflectingHandlerType.IsGenericType && reflectingHandlerType.IsGenericTypeDefinition))
             {
                 ThrowHelper.ThrowValueInterfaceAbstractOrOpenGenericTypesCannotBeActivated(handlerType, GetType());
             }

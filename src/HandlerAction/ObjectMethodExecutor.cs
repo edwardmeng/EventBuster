@@ -3,26 +3,29 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace EventBuster
 {
     internal class ObjectMethodExecutor
     {
-        private ActionExecutorAsync _executorAsync;
         private ActionExecutor _executor;
 
+#if !Net35
+        
+        private ActionExecutorAsync _executorAsync;
         private static readonly MethodInfo _convertOfTMethod =
             typeof(ObjectMethodExecutor).GetRuntimeMethods().Single(methodInfo => methodInfo.Name == nameof(Convert));
 
-        private static readonly Expression<Func<object, Task<object>>> _createTaskFromResultExpression = result => Task.FromResult(result);
+        private static readonly Expression<Func<object, System.Threading.Tasks.Task<object>>> _createTaskFromResultExpression = result => System.Threading.Tasks.Task.FromResult(result);
 
         private static readonly MethodInfo _createTaskFromResultMethod = ((MethodCallExpression)_createTaskFromResultExpression.Body).Method;
 
-        private static readonly Expression<Func<object, string, Type, Task<object>>> _coerceTaskExpression =
+        private static readonly Expression<Func<object, string, Type, System.Threading.Tasks.Task<object>>> _coerceTaskExpression =
             (result, methodName, declaringType) => CoerceTaskType(result, methodName, declaringType);
 
         private static readonly MethodInfo _coerceMethod = ((MethodCallExpression)_coerceTaskExpression.Body).Method;
+
+#endif
 
         private ObjectMethodExecutor(MethodInfo methodInfo)
         {
@@ -32,8 +35,6 @@ namespace EventBuster
             }
             MethodInfo = methodInfo;
         }
-
-        private delegate Task<object> ActionExecutorAsync(object target, object[] parameters);
 
         private delegate object ActionExecutor(object target, object[] parameters);
 
@@ -45,14 +46,11 @@ namespace EventBuster
         {
             return new ObjectMethodExecutor(methodInfo)
             {
-                _executor = GetExecutor(methodInfo, targetType),
-                _executorAsync = GetExecutorAsync(methodInfo, targetType)
+                _executor = GetExecutor(methodInfo, targetType)
+#if !Net35
+                ,_executorAsync = GetExecutorAsync(methodInfo, targetType)
+#endif
             };
-        }
-
-        public Task<object> ExecuteAsync(object target, object[] parameters)
-        {
-            return _executorAsync(target, parameters);
         }
 
         public object Execute(object target, object[] parameters)
@@ -83,7 +81,7 @@ namespace EventBuster
             MethodCallExpression methodCall;
             if (methodInfo.IsStatic)
             {
-                methodCall = Expression.Call(methodInfo, parameters);
+                methodCall = Expression.Call(methodInfo, parameters.ToArray());
             }
             else
             {
@@ -115,6 +113,15 @@ namespace EventBuster
                 executor(target, parameters);
                 return null;
             };
+        }
+
+#if !Net35
+
+        private delegate System.Threading.Tasks.Task<object> ActionExecutorAsync(object target, object[] parameters);
+        
+        public System.Threading.Tasks.Task<object> ExecuteAsync(object target, object[] parameters)
+        {
+            return _executorAsync(target, parameters);
         }
 
         private static ActionExecutorAsync GetExecutorAsync(MethodInfo methodInfo, Type targetType)
@@ -173,10 +180,14 @@ namespace EventBuster
         {
             var castMethodCall = Expression.Convert(methodCall, typeof(object));
             var returnType = methodCall.Type;
-
-            if (typeof(Task).IsAssignableFrom(returnType))
+#if NetCore
+            var isAsync = typeof(System.Threading.Tasks.Task).GetTypeInfo().IsAssignableFrom(returnType.GetTypeInfo());
+#else
+            var isAsync = typeof(System.Threading.Tasks.Task).IsAssignableFrom(returnType);
+#endif
+            if (isAsync)
             {
-                if (returnType == typeof(Task))
+                if (returnType == typeof(System.Threading.Tasks.Task))
                 {
                     var stringExpression = Expression.Constant(methodInfo.Name);
                     var typeExpression = Expression.Constant(methodInfo.DeclaringType);
@@ -190,7 +201,7 @@ namespace EventBuster
                     // constructs: return (Task<object>)Convert<T>((Task<T>)result)
                     var genericMethodInfo = _convertOfTMethod.MakeGenericMethod(taskValueType);
                     var genericMethodCall = Expression.Call(null, genericMethodInfo, castMethodCall);
-                    var convertedResult = Expression.Convert(genericMethodCall, typeof(Task<object>));
+                    var convertedResult = Expression.Convert(genericMethodCall, typeof(System.Threading.Tasks.Task<object>));
                     return convertedResult;
                 }
 
@@ -206,20 +217,20 @@ namespace EventBuster
             return delegate (object target, object[] parameters)
             {
                 executor(target, parameters);
-                return Task.FromResult<object>(null);
+                return System.Threading.Tasks.Task.FromResult<object>(null);
             };
         }
 
-        private static Task<object> CoerceTaskType(object result, string methodName, Type declaringType)
+        private static System.Threading.Tasks.Task<object> CoerceTaskType(object result, string methodName, Type declaringType)
         {
-            var resultAsTask = (Task)result;
+            var resultAsTask = (System.Threading.Tasks.Task)result;
             return CastToObject(resultAsTask);
         }
 
         /// <summary>
         /// Cast Task to Task of object
         /// </summary>
-        private static async Task<object> CastToObject(Task task)
+        private static async System.Threading.Tasks.Task<object> CastToObject(System.Threading.Tasks.Task task)
         {
             await task;
             return null;
@@ -228,22 +239,23 @@ namespace EventBuster
         /// <summary>
         /// Cast Task of T to Task of object
         /// </summary>
-        private static async Task<object> CastToObject<T>(Task<T> task)
+        private static async System.Threading.Tasks.Task<object> CastToObject<T>(System.Threading.Tasks.Task<T> task)
         {
-            return (object)await task;
+            return await task as object;
         }
 
         private static Type GetTaskInnerTypeOrNull(Type type)
         {
-            var genericType = ClosedGenericMatcher.ExtractGenericInterface(type, typeof(Task<>));
+            var genericType = ClosedGenericMatcher.ExtractGenericInterface(type, typeof(System.Threading.Tasks.Task<>));
 
             return genericType?.GenericTypeArguments[0];
         }
 
-        private static Task<object> Convert<T>(object taskAsObject)
+        private static System.Threading.Tasks.Task<object> Convert<T>(object taskAsObject)
         {
-            var task = (Task<T>)taskAsObject;
-            return CastToObject<T>(task);
+            var task = (System.Threading.Tasks.Task<T>)taskAsObject;
+            return CastToObject(task);
         }
+#endif
     }
 }

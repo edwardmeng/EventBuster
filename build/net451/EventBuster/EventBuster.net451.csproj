@@ -1,0 +1,158 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{A1C8EA3A-EF3D-488B-AFA9-16B02943C92E}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>EventBuster</RootNamespace>
+    <AssemblyName>EventBuster</AssemblyName>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;Net451</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE;Net451</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\EventBuster.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\..\..\EventBuster.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Transactions" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\GlobalAssemblyInfo.cs">
+      <Link>Properties\GlobalAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\Properties\AssemblyInfo.cs">
+      <Link>Properties\AssemblyInfo.cs</Link>
+    </Compile>
+    <None Include="..\..\..\EventBuster.snk">
+      <Link>Properties\PowerMapper.snk</Link>
+    </None>
+    <Compile Include="..\..\..\src\Activate\ActivatorUtilities.cs">
+      <Link>Activate\ActivatorUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\Activate\DefaultHandlerActivator.cs">
+      <Link>Activate\DefaultHandlerActivator.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\Activate\IHandlerActivator.cs">
+      <Link>Activate\IHandlerActivator.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\Activate\ServiceBasedHandlerActivator.cs">
+      <Link>Activate\ServiceBasedHandlerActivator.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\Activate\TypeActivatorCache.cs">
+      <Link>Activate\TypeActivatorCache.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\CancelEvent.cs">
+      <Link>CancelEvent.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\DefaultEventBus.cs">
+      <Link>DefaultEventBus.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\EventBus.cs">
+      <Link>EventBus.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\EventBusExtensions.cs">
+      <Link>EventBusExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\EventHandlerAttribute.cs">
+      <Link>EventHandlerAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\EventTriggered.cs">
+      <Link>EventTriggered.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\EventTriggering.cs">
+      <Link>EventTriggering.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\HandlerAction\ClosedGenericMatcher.cs">
+      <Link>HandlerAction\ClosedGenericMatcher.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\HandlerAction\HandlerActionPipeline.cs">
+      <Link>HandlerAction\HandlerActionPipeline.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\HandlerAction\HandlerActionPool.cs">
+      <Link>HandlerAction\HandlerActionPool.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\HandlerAction\IHandlerActionDiscover.cs">
+      <Link>HandlerAction\IHandlerActionDiscover.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\HandlerAction\ObjectMethodExecutor.cs">
+      <Link>HandlerAction\ObjectMethodExecutor.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\HandlerAction\AttributeActionDiscover.cs">
+      <Link>HandlerAction\AttributeActionDiscover.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\HandlerPriority.cs">
+      <Link>HandlerPriority.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\HandlerAction\HandlerActionDescriptor.cs">
+      <Link>HandlerAction\HandlerActionDescriptor.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\HandlerAction\IHandlerActionInvoker.cs">
+      <Link>HandlerAction\IHandlerActionInvoker.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\HandlerAction\LambdaActionInvoker.cs">
+      <Link>HandlerAction\LambdaActionInvoker.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\HandlerAction\ReflectionActionInvoker.cs">
+      <Link>HandlerAction\ReflectionActionInvoker.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\IEventBus.cs">
+      <Link>IEventBus.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\ServiceProvider.cs">
+      <Link>ServiceProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\Strings.Designer.cs">
+      <Link>Strings.Designer.cs</Link>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
+    <Compile Include="..\..\..\src\ThrowHelper.cs">
+      <Link>ThrowHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\src\TransactionFlowOption.cs">
+      <Link>TransactionFlowOption.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\..\src\Strings.resx">
+      <Link>Strings.resx</Link>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

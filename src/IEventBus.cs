@@ -1,11 +1,30 @@
 ﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace EventBuster
 {
     public interface IEventBus
     {
+        #region Ambient
+
+        /// <summary>
+        /// Gets the collection of <see cref="IHandlerActionDiscover"/> to detect event handler action descriptors.
+        /// </summary>
+        ICollection<IHandlerActionDiscover> Discovers { get; }
+
+        /// <summary>
+        /// The ambient <see cref="IServiceProvider"/>.
+        /// </summary>
+        IServiceProvider ServiceProvider { get; }
+
+        /// <summary>
+        /// Set the delegate that is used to retrieve the ambient <see cref="IServiceProvider"/>.
+        /// </summary>
+        /// <param name="newProvider">Delegate that, when called, will return the ambient <see cref="IServiceProvider"/>.</param>
+        void SetServiceProvider(Func<IServiceProvider> newProvider);
+
+        #endregion
+
         #region Register
 
         /// <summary>
@@ -59,13 +78,17 @@ namespace EventBuster
         /// <param name="evt">Related data for the event</param>
         void Trigger<TEvent>(TEvent evt);
 
+#if !Net35
+
         /// <summary>
         /// Triggers an event asynchronously.
         /// </summary>
         /// <typeparam name="TEvent">Event type</typeparam>
         /// <param name="evt">Related data for the event</param>
         /// <param name="token"></param>
-        Task TriggerAsync<TEvent>(TEvent evt, CancellationToken token);
+        System.Threading.Tasks.Task TriggerAsync<TEvent>(TEvent evt, System.Threading.CancellationToken token);
+
+#endif
 
         #endregion
     }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Transactions;
 
 namespace EventBuster
 {
@@ -11,25 +10,45 @@ namespace EventBuster
 
         public IServiceProvider Services { get; set; }
 
-        public TransactionFlowOption TransactionFlow { get; set; } = TransactionFlowOption.Allowed;
-
         public Type EventType => Invoker?.EventType;
 
-        internal TransactionScope CreateTransactionScope(TransactionScopeAsyncFlowOption asyncFlowOption)
+#if !NetCore
+        public TransactionFlowOption TransactionFlow { get; set; } = TransactionFlowOption.Allowed;
+
+#if Net35
+        internal System.Transactions.TransactionScope CreateTransactionScope()
         {
             if (TransactionFlow == TransactionFlowOption.NotAllowed)
             {
-                if (Transaction.Current != null)
+                if (System.Transactions.Transaction.Current != null)
                 {
-                    return new TransactionScope(TransactionScopeOption.Suppress, asyncFlowOption);
+                    return new System.Transactions.TransactionScope(System.Transactions.TransactionScopeOption.Suppress);
                 }
             }
             else if (TransactionFlow == TransactionFlowOption.Mandatory)
             {
-                return new TransactionScope(TransactionScopeOption.Required, asyncFlowOption);
+                return new System.Transactions.TransactionScope(System.Transactions.TransactionScopeOption.Required);
             }
             return null;
         }
+#else
+        internal System.Transactions.TransactionScope CreateTransactionScope(System.Transactions.TransactionScopeAsyncFlowOption asyncFlowOption)
+        {
+            if (TransactionFlow == TransactionFlowOption.NotAllowed)
+            {
+                if (System.Transactions.Transaction.Current != null)
+                {
+                    return new System.Transactions.TransactionScope(System.Transactions.TransactionScopeOption.Suppress, asyncFlowOption);
+                }
+            }
+            else if (TransactionFlow == TransactionFlowOption.Mandatory)
+            {
+                return new System.Transactions.TransactionScope(System.Transactions.TransactionScopeOption.Required, asyncFlowOption);
+            }
+            return null;
+        }
+#endif
+#endif
 
         public override bool Equals(object obj)
         {
@@ -38,7 +57,10 @@ namespace EventBuster
             var other = obj as HandlerActionDescriptor;
             if (other == null) return false;
             if (obj.GetType() != GetType()) return false;
-            return Priority == other.Priority && Equals(Invoker, other.Invoker) && TransactionFlow == other.TransactionFlow;
+#if !NetCore
+            if (TransactionFlow != other.TransactionFlow) return false;
+#endif
+            return Priority == other.Priority && Equals(Invoker, other.Invoker);
         }
 
         public override int GetHashCode()
@@ -47,7 +69,9 @@ namespace EventBuster
             {
                 var hashCode = (int)Priority;
                 hashCode = (hashCode * 397) ^ (Invoker?.GetHashCode() ?? 0);
+#if !NetCore
                 hashCode = (hashCode * 397) ^ (int)TransactionFlow;
+#endif
                 return hashCode;
             }
         }

@@ -1,68 +1,152 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Reflection;
 
 namespace EventBuster
 {
     internal class DefaultEventBus : IEventBus
     {
         private readonly HandlerActionPool _pool = new HandlerActionPool();
+        private Func<IServiceProvider> _serviceProviderFactory;
+        private IServiceProvider _serviceProvider;
 
-        private bool IsFrameworkEvent(object evt)
+        #region Ambient
+
+        /// <summary>
+        /// Gets the collection of <see cref="IHandlerActionDiscover"/> to detect event handler action descriptors.
+        /// </summary>
+        public ICollection<IHandlerActionDiscover> Discovers { get; } = new Collection<IHandlerActionDiscover> { new AttributeActionDiscover() };
+
+        /// <summary>
+        /// The ambient <see cref="IServiceProvider"/>.
+        /// </summary>
+        public IServiceProvider ServiceProvider
         {
-            return evt.GetType().Assembly == GetType().Assembly;
+            get
+            {
+                if (_serviceProvider == null)
+                {
+                    if (_serviceProviderFactory == null)
+                    {
+                        _serviceProviderFactory = () =>
+                        {
+                            var serviceProvider = new ServiceProvider();
+                            serviceProvider.AddInstance<IHandlerActivator>(new DefaultHandlerActivator());
+                            serviceProvider.Add(typeof(IEventBus), () => this);
+                            foreach (var discover in Discovers)
+                            {
+                                serviceProvider.AddInstance<IHandlerActionDiscover>(discover);
+                            }
+                            return serviceProvider;
+                        };
+                    }
+                    _serviceProvider = _serviceProviderFactory();
+                }
+                return _serviceProvider;
+            }
         }
 
+        /// <summary>
+        /// Set the delegate that is used to retrieve the ambient <see cref="IServiceProvider"/>.
+        /// </summary>
+        /// <param name="newProvider">Delegate that, when called, will return the ambient <see cref="IServiceProvider"/>.</param>
+        public void SetServiceProvider(Func<IServiceProvider> newProvider)
+        {
+            if (newProvider == null)
+            {
+                throw new ArgumentNullException(nameof(newProvider));
+            }
+            _serviceProviderFactory = newProvider;
+            _serviceProvider = null;
+        }
+
+        #endregion
+
+        #region Register
+
+        /// <summary>
+        /// Registers handler to an event. 
+        /// </summary>
+        /// <param name="handler">The event handle instance to handle event.</param>
         public void Register(object handler)
         {
-            foreach (var actionDescriptor in EventBus.Discovers.SelectMany(discover => discover.Discover(EventBus.ServiceProvider, handler)))
+            foreach (var actionDescriptor in Discovers.SelectMany(discover => discover.Discover(ServiceProvider, handler)))
             {
                 _pool.Add(actionDescriptor);
             }
         }
 
+        /// <summary>
+        /// Registers handler type to an event.
+        /// </summary>
+        /// <param name="handlerType">The handler type.</param>
         public void Register(Type handlerType)
         {
-            foreach (var actionDescriptor in EventBus.Discovers.SelectMany(discover => discover.Discover(EventBus.ServiceProvider, handlerType)))
+            foreach (var actionDescriptor in Discovers.SelectMany(discover => discover.Discover(ServiceProvider, handlerType)))
             {
                 _pool.Add(actionDescriptor);
             }
         }
 
+        /// <summary>
+        /// Registers handler action invoker to an event. 
+        /// </summary>
+        /// <param name="invoker">The handler action invoker.</param>
         public void Register(IHandlerActionInvoker invoker)
         {
             _pool.Add(new HandlerActionDescriptor
             {
                 Invoker = invoker,
-                Services = EventBus.ServiceProvider
+                Services = ServiceProvider
             });
         }
 
+        #endregion
+
+        #region Unregister
+
+        /// <summary>
+        /// Unregisters handler to an event. 
+        /// </summary>
+        /// <param name="handler">The event handle instance to handle event.</param>
         public void Unregister(object handler)
         {
-            foreach (var actionDescriptor in EventBus.Discovers.SelectMany(discover => discover.Discover(EventBus.ServiceProvider, handler)))
+            foreach (var actionDescriptor in Discovers.SelectMany(discover => discover.Discover(ServiceProvider, handler)))
             {
                 _pool.Remove(actionDescriptor);
             }
         }
 
+        /// <summary>
+        /// Unregisters handler type to an event.
+        /// </summary>
+        /// <param name="handlerType">The handler type.</param>
         public void Unregister(Type handlerType)
         {
-            foreach (var actionDescriptor in EventBus.Discovers.SelectMany(discover => discover.Discover(EventBus.ServiceProvider, handlerType)))
+            foreach (var actionDescriptor in Discovers.SelectMany(discover => discover.Discover(ServiceProvider, handlerType)))
             {
                 _pool.Remove(actionDescriptor);
             }
         }
 
+        /// <summary>
+        /// Unregisters handler action invoker to an event. 
+        /// </summary>
+        /// <param name="invoker">The handler action invoker.</param>
         public void Unregister(IHandlerActionInvoker invoker)
         {
             _pool.Remove(new HandlerActionDescriptor
             {
                 Invoker = invoker,
-                Services = EventBus.ServiceProvider
+                Services = ServiceProvider
             });
         }
+
+        #endregion
+
+        #region Trigger
 
         public void Trigger<TEvent>(TEvent evt)
         {
@@ -86,7 +170,9 @@ namespace EventBuster
             }
         }
 
-        public async Task TriggerAsync<TEvent>(TEvent evt, CancellationToken token)
+#if !Net35
+        
+        public async System.Threading.Tasks.Task TriggerAsync<TEvent>(TEvent evt, System.Threading.CancellationToken token)
         {
             if (evt == null) throw new ArgumentNullException(nameof(evt));
             var isFrameworkEvent = IsFrameworkEvent(evt);
@@ -107,5 +193,18 @@ namespace EventBuster
                 await TriggerAsync(new EventTriggered(evt), token);
             }
         }
+
+#endif
+
+        private bool IsFrameworkEvent(object evt)
+        {
+#if NetCore
+            return Equals(evt.GetType().GetTypeInfo().Assembly, GetType().GetTypeInfo().Assembly);
+#else
+            return Equals(evt.GetType().Assembly, GetType().Assembly);
+#endif
+        }
+
+        #endregion
     }
 }

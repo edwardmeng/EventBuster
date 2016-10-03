@@ -8,6 +8,8 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
+using System.Reflection;
+
 namespace EventBuster {
     using System;
     
@@ -39,7 +41,12 @@ namespace EventBuster {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("EventBuster.Strings", typeof(Strings).Assembly);
+#if NetCore
+                    var assembly = typeof(Strings).GetTypeInfo().Assembly;
+#else
+                    var assembly = typeof(Strings).Assembly;
+#endif
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("EventBuster.Strings", assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -140,6 +147,33 @@ namespace EventBuster {
         internal static string ActionMethod_SecondParameter_MustBeToken {
             get {
                 return ResourceManager.GetString("ActionMethod_SecondParameter_MustBeToken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Multiple constructors accepting all given argument types have been found in type &apos;{0}&apos;. There should only be one applicable constructor. 的本地化字符串。
+        /// </summary>
+        internal static string Activator_AmbiguousConstructors {
+            get {
+                return ResourceManager.GetString("Activator_AmbiguousConstructors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 A suitable constructor for type &apos;{0}&apos; could not be located. Ensure the type is concrete and services are registered for all parameters of a public constructor. 的本地化字符串。
+        /// </summary>
+        internal static string Activator_CannotLocateConstructor {
+            get {
+                return ResourceManager.GetString("Activator_CannotLocateConstructor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Unable to resolve service for type &apos;{0}&apos; while attempting to activate &apos;{1}&apos;. 的本地化字符串。
+        /// </summary>
+        internal static string Activator_CannotResolveParameter {
+            get {
+                return ResourceManager.GetString("Activator_CannotResolveParameter", resourceCulture);
             }
         }
         

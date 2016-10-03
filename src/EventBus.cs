@@ -1,66 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace EventBuster
 {
     public static class EventBus
     {
-        #region Fields
-
-        private static Lazy<IEventBus> _defaultInstance = new Lazy<IEventBus>(() => new DefaultEventBus());
-        private static Lazy<IServiceProvider> _serviceProvider;
-
-        #endregion
-
         #region Ambient
 
-        public static ICollection<IHandlerActionDiscover> Discovers { get; } = new Collection<IHandlerActionDiscover> { new AttributeActionDiscover() };
+        private static Func<IEventBus> _eventBusFactory = () => new DefaultEventBus();
+        private static IEventBus _defaultInstance;
 
         /// <summary>
         /// The default ambient <see cref="IEventBus"/>
         /// </summary>
-        public static IEventBus Default => _defaultInstance.Value;
-
-        /// <summary>
-        /// The ambient <see cref="IServiceProvider"/>.
-        /// </summary>
-        public static IServiceProvider ServiceProvider
-        {
-            get
-            {
-                if (_serviceProvider == null)
-                {
-                    _serviceProvider = new Lazy<IServiceProvider>(() =>
-                    {
-                        var provider = new ServiceProvider();
-                        provider.AddInstance<IHandlerActivator>(new DefaultHandlerActivator());
-                        provider.Add(typeof(IEventBus), () => Default);
-                        foreach (var discover in Discovers)
-                        {
-                            provider.AddInstance<IHandlerActionDiscover>(discover);
-                        }
-                        return provider;
-                    });
-                }
-                return _serviceProvider.Value;
-            }
-        }
-
-        /// <summary>
-        /// Set the delegate that is used to retrieve the ambient <see cref="IServiceProvider"/>.
-        /// </summary>
-        /// <param name="newProvider">Delegate that, when called, will return the ambient <see cref="IServiceProvider"/>.</param>
-        public static void SetServiceProvider(Func<IServiceProvider> newProvider)
-        {
-            if (newProvider == null)
-            {
-                throw new ArgumentNullException(nameof(newProvider));
-            }
-            _serviceProvider = new Lazy<IServiceProvider>(newProvider);
-        }
+        public static IEventBus Default => _defaultInstance ?? (_defaultInstance = _eventBusFactory());
 
         /// <summary>
         /// Set the delegate that is used to retrieve the ambient <see cref="IEventBus"/>.
@@ -72,7 +24,8 @@ namespace EventBuster
             {
                 throw new ArgumentNullException(nameof(newEventBus));
             }
-            _defaultInstance = new Lazy<IEventBus>(newEventBus);
+            _eventBusFactory = newEventBus;
+            _defaultInstance = null;
         }
 
         #endregion
@@ -89,7 +42,7 @@ namespace EventBuster
             {
                 throw new ArgumentNullException(nameof(handler));
             }
-            _defaultInstance.Value.Register(handler);
+            Default.Register(handler);
         }
 
         /// <summary>
@@ -102,7 +55,7 @@ namespace EventBuster
             {
                 throw new ArgumentNullException(nameof(handlerType));
             }
-            _defaultInstance.Value.Register(handlerType);
+            Default.Register(handlerType);
         }
 
         /// <summary>
@@ -125,7 +78,23 @@ namespace EventBuster
             {
                 throw new ArgumentNullException(nameof(action));
             }
-            _defaultInstance.Value.Register(new LambdaActionInvoker<TEvent>(action));
+            Default.Register(new LambdaActionInvoker<TEvent>(action));
+        }
+
+#if !Net35
+        
+        /// <summary>
+        /// Registers handler action to an event.
+        /// </summary>
+        /// <typeparam name="TEvent">The event type.</typeparam>
+        /// <param name="asyncAction">The handler action.</param>
+        public static void Register<TEvent>(Func<TEvent, System.Threading.Tasks.Task> asyncAction)
+        {
+            if (asyncAction == null)
+            {
+                throw new ArgumentNullException(nameof(asyncAction));
+            }
+            Default.Register(new LambdaActionInvoker<TEvent>(asyncAction));
         }
 
         /// <summary>
@@ -133,28 +102,16 @@ namespace EventBuster
         /// </summary>
         /// <typeparam name="TEvent">The event type.</typeparam>
         /// <param name="asyncAction">The handler action.</param>
-        public static void Register<TEvent>(Func<TEvent, Task> asyncAction)
+        public static void Register<TEvent>(Func<TEvent, System.Threading.CancellationToken, System.Threading.Tasks.Task> asyncAction)
         {
             if (asyncAction == null)
             {
                 throw new ArgumentNullException(nameof(asyncAction));
             }
-            _defaultInstance.Value.Register(new LambdaActionInvoker<TEvent>(asyncAction));
+            Default.Register(new LambdaActionInvoker<TEvent>(asyncAction));
         }
 
-        /// <summary>
-        /// Registers handler action to an event.
-        /// </summary>
-        /// <typeparam name="TEvent">The event type.</typeparam>
-        /// <param name="asyncAction">The handler action.</param>
-        public static void Register<TEvent>(Func<TEvent, CancellationToken, Task> asyncAction)
-        {
-            if (asyncAction == null)
-            {
-                throw new ArgumentNullException(nameof(asyncAction));
-            }
-            _defaultInstance.Value.Register(new LambdaActionInvoker<TEvent>(asyncAction));
-        }
+#endif
 
         #endregion
 
@@ -170,7 +127,7 @@ namespace EventBuster
             {
                 throw new ArgumentNullException(nameof(handler));
             }
-            _defaultInstance.Value.Unregister(handler);
+            Default.Unregister(handler);
         }
 
         /// <summary>
@@ -183,7 +140,7 @@ namespace EventBuster
             {
                 throw new ArgumentNullException(nameof(handlerType));
             }
-            _defaultInstance.Value.Unregister(handlerType);
+            Default.Unregister(handlerType);
         }
 
         /// <summary>
@@ -206,7 +163,23 @@ namespace EventBuster
             {
                 throw new ArgumentNullException(nameof(action));
             }
-            _defaultInstance.Value.Unregister(new LambdaActionInvoker<TEvent>(action));
+            Default.Unregister(new LambdaActionInvoker<TEvent>(action));
+        }
+
+#if !Net35
+        
+        /// <summary>
+        /// Unregisters handler action to an event.
+        /// </summary>
+        /// <typeparam name="TEvent">The event type.</typeparam>
+        /// <param name="asyncAction">The handler action.</param>
+        public static void Unregister<TEvent>(Func<TEvent, System.Threading.Tasks.Task> asyncAction)
+        {
+            if (asyncAction == null)
+            {
+                throw new ArgumentNullException(nameof(asyncAction));
+            }
+            Default.Unregister(new LambdaActionInvoker<TEvent>(asyncAction));
         }
 
         /// <summary>
@@ -214,28 +187,16 @@ namespace EventBuster
         /// </summary>
         /// <typeparam name="TEvent">The event type.</typeparam>
         /// <param name="asyncAction">The handler action.</param>
-        public static void Unregister<TEvent>(Func<TEvent, Task> asyncAction)
+        public static void Unregister<TEvent>(Func<TEvent, System.Threading.CancellationToken, System.Threading.Tasks.Task> asyncAction)
         {
             if (asyncAction == null)
             {
                 throw new ArgumentNullException(nameof(asyncAction));
             }
-            _defaultInstance.Value.Unregister(new LambdaActionInvoker<TEvent>(asyncAction));
+            Default.Unregister(new LambdaActionInvoker<TEvent>(asyncAction));
         }
 
-        /// <summary>
-        /// Unregisters handler action to an event.
-        /// </summary>
-        /// <typeparam name="TEvent">The event type.</typeparam>
-        /// <param name="asyncAction">The handler action.</param>
-        public static void Unregister<TEvent>(Func<TEvent, CancellationToken, Task> asyncAction)
-        {
-            if (asyncAction == null)
-            {
-                throw new ArgumentNullException(nameof(asyncAction));
-            }
-            _defaultInstance.Value.Unregister(new LambdaActionInvoker<TEvent>(asyncAction));
-        }
+#endif
 
         #endregion
 
@@ -248,18 +209,20 @@ namespace EventBuster
         /// <param name="evt">Related data for the event</param>
         public static void Trigger<TEvent>(TEvent evt)
         {
-            _defaultInstance.Value.Trigger(evt);
+            Default.Trigger(evt);
         }
 
+#if !Net35
+        
         /// <summary>
         /// Triggers an event asynchronously.
         /// </summary>
         /// <typeparam name="TEvent">Event type</typeparam>
         /// <param name="evt">Related data for the event</param>
         /// <param name="token"></param>
-        public static Task TriggerAsync<TEvent>(TEvent evt, CancellationToken token)
+        public static System.Threading.Tasks.Task TriggerAsync<TEvent>(TEvent evt, System.Threading.CancellationToken token)
         {
-            return _defaultInstance.Value.TriggerAsync(evt, token);
+            return Default.TriggerAsync(evt, token);
         }
 
         /// <summary>
@@ -267,10 +230,12 @@ namespace EventBuster
         /// </summary>
         /// <typeparam name="TEvent">Event type</typeparam>
         /// <param name="evt">Related data for the event</param>
-        public static Task TriggerAsync<TEvent>(TEvent evt)
+        public static System.Threading.Tasks.Task TriggerAsync<TEvent>(TEvent evt)
         {
-            return _defaultInstance.Value.TriggerAsync(evt, CancellationToken.None);
+            return Default.TriggerAsync(evt, System.Threading.CancellationToken.None);
         }
+
+#endif
 
         #endregion
     }

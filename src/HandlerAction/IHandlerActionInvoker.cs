@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace EventBuster
 {
@@ -11,7 +9,7 @@ namespace EventBuster
         void Invoke(HandlerActionDescriptor descriptor, object evt);
 
 #if !Net35
-        Task InvokeAsync(HandlerActionDescriptor descriptor, object evt, CancellationToken token);
+        System.Threading.Tasks.Task InvokeAsync(HandlerActionDescriptor descriptor, object evt, System.Threading.CancellationToken token);
 #endif
     }
 }

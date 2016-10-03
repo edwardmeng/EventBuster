@@ -6,7 +6,7 @@
     public enum TransactionFlowOption
     {
         /// <summary>
-        /// Transaction may be flowed.
+        /// Transaction may not be flowed.
         /// </summary>
         NotAllowed,
 

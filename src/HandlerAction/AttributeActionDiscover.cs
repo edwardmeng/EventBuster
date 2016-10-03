@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace EventBuster
 {
@@ -18,16 +16,23 @@ namespace EventBuster
         {
             return Discover(serviceProvider, instance.GetType(), method => new ReflectionActionInvoker(method, instance));
         }
+#if !Net35
+        private static bool IsAsyncMethod(MethodInfo method)
+        {
+#if NetCore
+            return typeof(System.Threading.Tasks.Task).GetTypeInfo().IsAssignableFrom(method.ReturnType.GetTypeInfo());
+#else
+            return typeof(System.Threading.Tasks.Task).IsAssignableFrom(method.ReturnType);
+#endif
+        }
+
+#endif
 
         private static void ValidateMethod(MethodInfo method)
         {
             if (method.IsGenericMethodDefinition || method.IsGenericMethod)
             {
                 ThrowHelper.ThrowGenericHandlerActionMethodException(method);
-            }
-            if ((typeof(Task).IsAssignableFrom(method.ReturnType) && method.ReturnType != typeof(Task)) || method.ReturnType != typeof(void))
-            {
-                ThrowHelper.ThrowHandlerActionMethodCannotReturnException(method);
             }
             var parameters = method.GetParameters();
             if (parameters.Any(parameter => parameter.IsOut || parameter.ParameterType.IsByRef))
@@ -38,28 +43,43 @@ namespace EventBuster
             {
                 ThrowHelper.ThrowHandlerActionMethodMustBeSingleParameterException(method);
             }
-            if (method.ReturnType == typeof(Task))
+#if !Net35
+            if ((IsAsyncMethod(method) && method.ReturnType != typeof(System.Threading.Tasks.Task)) || method.ReturnType != typeof(void))
+            {
+                ThrowHelper.ThrowHandlerActionMethodCannotReturnException(method);
+            }
+            if (method.ReturnType == typeof(System.Threading.Tasks.Task))
             {
                 if (parameters.Length == 0 || parameters.Length > 2)
                 {
                     ThrowHelper.ThrowInvalidAsyncHandlerActionMethodException(method);
                 }
-                if (parameters.Length >= 1 && parameters[0].ParameterType == typeof(CancellationToken))
+                if (parameters.Length >= 1 && parameters[0].ParameterType == typeof(System.Threading.CancellationToken))
                 {
                     ThrowHelper.ThrowAsyncHandlerActionMethodInvalidFirstParameter(method);
                 }
-                if (parameters.Length == 2 && parameters[1].ParameterType != typeof(CancellationToken))
+                if (parameters.Length == 2 && parameters[1].ParameterType != typeof(System.Threading.CancellationToken))
                 {
                     ThrowHelper.ThrowAsyncHandlerActionMethodInvalidSecondParameter(method);
                 }
             }
+#endif
         }
 
         private static IEnumerable<HandlerActionDescriptor> Discover(IServiceProvider serviceProvider, Type type, Func<MethodInfo, IHandlerActionInvoker> invokerCreator)
         {
-            foreach (var method in type.GetMethods(BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
+#if NetCore
+            var methods = type.GetTypeInfo().DeclaredMethods;
+#else
+            var methods = type.GetMethods(BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+#endif
+            foreach (var method in methods)
             {
+#if Net35
+                var attribute = (EventHandlerAttribute) Attribute.GetCustomAttribute(method, typeof(EventHandlerAttribute));
+#else
                 var attribute = method.GetCustomAttribute<EventHandlerAttribute>();
+#endif
                 if (attribute != null)
                 {
                     ValidateMethod(method);
@@ -67,7 +87,9 @@ namespace EventBuster
                     {
                         Invoker = invokerCreator(method),
                         Priority = attribute.Priority,
+#if !NetCore
                         TransactionFlow = attribute.TransactionFlow,
+#endif
                         Services = serviceProvider
                     };
                 }

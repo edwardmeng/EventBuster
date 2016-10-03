@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace EventBuster
@@ -8,7 +7,11 @@ namespace EventBuster
     {
         private readonly object _lockObject = new object();
         private readonly List<HandlerActionDescriptor> _actionPool = new List<HandlerActionDescriptor>();
-        private readonly ConcurrentDictionary<Type, HandlerActionPipeline> _descriptors = new ConcurrentDictionary<Type, HandlerActionPipeline>();
+#if Net35
+        private readonly Dictionary<Type, HandlerActionPipeline> _descriptors = new Dictionary<Type, HandlerActionPipeline>();
+#else
+        private readonly System.Collections.Concurrent.ConcurrentDictionary<Type, HandlerActionPipeline> _descriptors = new System.Collections.Concurrent.ConcurrentDictionary<Type, HandlerActionPipeline>();
+#endif
 
         public void Add(HandlerActionDescriptor descriptor)
         {
@@ -17,7 +20,17 @@ namespace EventBuster
                 if (!_actionPool.Contains(descriptor))
                 {
                     _actionPool.Add(descriptor);
+#if Net35
+                    HandlerActionPipeline pipeline;
+                    if (!_descriptors.TryGetValue(descriptor.EventType,out pipeline))
+                    {
+                        pipeline = new HandlerActionPipeline();
+                        _descriptors.Add(descriptor.EventType, pipeline);
+                    }
+                    pipeline.Add(descriptor);
+#else
                     _descriptors.GetOrAdd(descriptor.EventType, key => new HandlerActionPipeline()).Add(descriptor);
+#endif
                 }
             }
         }
@@ -34,7 +47,11 @@ namespace EventBuster
                         pipeline.Remove(descriptor);
                         if (pipeline.Count == 0)
                         {
+#if Net35
+                            _descriptors.Remove(descriptor.EventType);
+#else
                             _descriptors.TryRemove(descriptor.EventType, out pipeline);
+#endif
                         }
                     }
                     return true;

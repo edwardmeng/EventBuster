@@ -3,8 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace EventBuster
 {
@@ -15,7 +13,11 @@ namespace EventBuster
 
         public HandlerActionPipeline()
         {
+#if NetCore
+            _stages = new List<HandlerActionDescriptor>[typeof(HandlerPriority).GetTypeInfo().DeclaredFields.Count(field => field.IsStatic && field.IsPublic)];
+#else
             _stages = new List<HandlerActionDescriptor>[typeof(HandlerPriority).GetFields(BindingFlags.Public | BindingFlags.Static).Length];
+#endif
             for (var i = 0; i < _stages.Length; ++i)
             {
                 _stages[i] = new List<HandlerActionDescriptor>();
@@ -87,7 +89,7 @@ namespace EventBuster
         }
 
 #if !Net35
-        public async Task InvokeAsync(object evt, CancellationToken token)
+        public async System.Threading.Tasks.Task InvokeAsync(object evt, System.Threading.CancellationToken token)
         {
             foreach (var actionDescriptor in this)
             {
