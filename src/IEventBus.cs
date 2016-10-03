@@ -13,11 +13,6 @@ namespace EventBuster
         ICollection<IHandlerActionDiscover> Discovers { get; }
 
         /// <summary>
-        /// The ambient <see cref="IServiceProvider"/>.
-        /// </summary>
-        IServiceProvider ServiceProvider { get; }
-
-        /// <summary>
         /// Set the delegate that is used to retrieve the ambient <see cref="IServiceProvider"/>.
         /// </summary>
         /// <param name="newProvider">Delegate that, when called, will return the ambient <see cref="IServiceProvider"/>.</param>
