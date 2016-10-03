@@ -9,6 +9,9 @@ namespace EventBuster
         void Invoke(HandlerActionContext context, object evt);
 
 #if !Net35
+
+        bool IsAsync { get; }
+
         System.Threading.Tasks.Task InvokeAsync(HandlerActionContext context, object evt, System.Threading.CancellationToken token);
 #endif
     }

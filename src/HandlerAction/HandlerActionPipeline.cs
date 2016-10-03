@@ -82,10 +82,33 @@ namespace EventBuster
 
         public void Invoke(IServiceProvider serviceProvider, IDictionary<Type, object> instancePool, object evt)
         {
+#if !Net35
+            lock (_lockObject)
+            {
+                foreach (var stage in _stages)
+                {
+                    var tasks = new List<System.Threading.Tasks.Task>();
+                    foreach (var actionDescriptor in stage)
+                    {
+                        var context = new HandlerActionContext(instancePool, actionDescriptor, serviceProvider);
+                        if (actionDescriptor.Invoker.IsAsync)
+                        {
+                            tasks.Add(actionDescriptor.Invoker.InvokeAsync(context, evt, System.Threading.CancellationToken.None));
+                        }
+                        else
+                        {
+                            actionDescriptor.Invoker.Invoke(context, evt);
+                        }
+                    }
+                    System.Threading.Tasks.Task.WaitAll(tasks.ToArray());
+                }
+            }
+#else
             foreach (var actionDescriptor in this)
             {
                 actionDescriptor.Invoker.Invoke(new HandlerActionContext(instancePool, actionDescriptor, serviceProvider), evt);
             }
+#endif
         }
 
 #if !Net35
@@ -93,7 +116,15 @@ namespace EventBuster
         {
             foreach (var actionDescriptor in this)
             {
-                await actionDescriptor.Invoker.InvokeAsync(new HandlerActionContext(instancePool, actionDescriptor, serviceProvider), evt, token);
+                var context = new HandlerActionContext(instancePool, actionDescriptor, serviceProvider);
+                if (actionDescriptor.Invoker.IsAsync)
+                {
+                    await actionDescriptor.Invoker.InvokeAsync(context, evt, token);
+                }
+                else
+                {
+                    actionDescriptor.Invoker.Invoke(context,evt);
+                }
             }
         }
 #endif

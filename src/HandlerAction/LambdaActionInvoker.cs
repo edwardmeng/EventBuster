@@ -72,45 +72,35 @@ namespace EventBuster
                 }
                 _action.Invoke(eventArgs);
             }
-#if !Net35
-            else
-            {
-                System.Threading.Tasks.Task.WaitAll(InvokeAsync(context, evt, System.Threading.CancellationToken.None));
-            }
-#endif
         }
 
 #if !Net35
+
+        public bool IsAsync => _func != null || _func2 != null;
+
         public async System.Threading.Tasks.Task InvokeAsync(HandlerActionContext context, object evt, System.Threading.CancellationToken token)
         {
             if (evt == null)
             {
                 throw new ArgumentNullException(nameof(evt));
             }
-            if (_action != null)
+            TEvent eventArgs;
+            try
             {
-                Invoke(context, evt);
+                eventArgs = (TEvent)evt;
             }
-            else
+            catch (InvalidCastException)
             {
-                TEvent eventArgs;
-                try
-                {
-                    eventArgs = (TEvent)evt;
-                }
-                catch (InvalidCastException)
-                {
-                    ThrowHelper.ThrowWrongValueTypeArgumentException(evt, typeof(TEvent));
-                    return;
-                }
-                if (_func != null)
-                {
-                    await _func(eventArgs);
-                }
-                else if (_func2 != null)
-                {
-                    await _func2(eventArgs, token);
-                }
+                ThrowHelper.ThrowWrongValueTypeArgumentException(evt, typeof(TEvent));
+                return;
+            }
+            if (_func != null)
+            {
+                await _func(eventArgs);
+            }
+            else if (_func2 != null)
+            {
+                await _func2(eventArgs, token);
             }
         }
 #endif
@@ -135,8 +125,8 @@ namespace EventBuster
             {
                 var hashCode = _action?.GetHashCode() ?? 0;
 #if !Net35
-                hashCode = (hashCode*397) ^ (_func?.GetHashCode() ?? 0);
-                hashCode = (hashCode*397) ^ (_func2?.GetHashCode() ?? 0);
+                hashCode = (hashCode * 397) ^ (_func?.GetHashCode() ?? 0);
+                hashCode = (hashCode * 397) ^ (_func2?.GetHashCode() ?? 0);
 #endif
                 return hashCode;
             }

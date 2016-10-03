@@ -96,18 +96,6 @@ namespace EventBuster
             }
         }
 
-#if !Net35
-        private bool IsAsyncMethod(MethodInfo method)
-        {
-#if NetCore
-            return typeof(System.Threading.Tasks.Task).GetTypeInfo().IsAssignableFrom(method.ReturnType.GetTypeInfo());
-#else
-            return typeof(System.Threading.Tasks.Task).IsAssignableFrom(method.ReturnType);
-#endif
-        }
-
-#endif
-
         private void ValidateEvent(object evt)
         {
 #if NetCore
@@ -126,16 +114,8 @@ namespace EventBuster
             {
                 throw new ArgumentNullException(nameof(evt));
             }
-#if !Net35
-            if (IsAsyncMethod(_methodInfo))
-            {
-                System.Threading.Tasks.Task.WaitAll(InvokeAsync(context, evt, System.Threading.CancellationToken.None));
-            }
-            else
-#endif
-            {
-                ValidateEvent(evt);
-                using (var transaction =
+            ValidateEvent(evt);
+            using (var transaction =
 #if Net35
                     context.CreateTransactionScope()
 #elif Net451
@@ -144,16 +124,28 @@ namespace EventBuster
                     (IDisposable)null
 #endif
                     )
-                {
-                    _executor.Execute(_methodInfo.IsStatic ? null : (_targetInstance ?? context.GetInstance(_targetType)), new[] { evt });
+            {
+                _executor.Execute(_methodInfo.IsStatic ? null : (_targetInstance ?? context.GetInstance(_targetType)), new[] { evt });
 #if !NetCore
-                    transaction?.Complete();
+                transaction?.Complete();
 #endif
-                }
             }
         }
 
 #if !Net35
+
+        public bool IsAsync
+        {
+            get
+            {
+#if NetCore
+            return typeof(System.Threading.Tasks.Task).GetTypeInfo().IsAssignableFrom(_methodInfo.ReturnType.GetTypeInfo());
+#else
+                return typeof(System.Threading.Tasks.Task).IsAssignableFrom(_methodInfo.ReturnType);
+#endif
+            }
+        }
+
         public async System.Threading.Tasks.Task InvokeAsync(HandlerActionContext context, object evt, System.Threading.CancellationToken token)
         {
             if (evt == null)
@@ -161,32 +153,25 @@ namespace EventBuster
                 throw new ArgumentNullException(nameof(evt));
             }
             token.ThrowIfCancellationRequested();
-            if (!IsAsyncMethod(_methodInfo))
-            {
-                Invoke(context, evt);
-            }
-            else
-            {
-                ValidateEvent(evt);
-                using (var transaction =
+            ValidateEvent(evt);
+            using (var transaction =
 #if NetCore
                     (IDisposable)null
 #else
                     context.CreateTransactionScope(System.Transactions.TransactionScopeAsyncFlowOption.Enabled)
 #endif
                     )
+            {
+                var parameters = _methodInfo.GetParameters();
+                var arguments = new System.Collections.Generic.List<object> { evt };
+                if (parameters.Length == 2 && parameters[1].ParameterType == typeof(System.Threading.CancellationToken))
                 {
-                    var parameters = _methodInfo.GetParameters();
-                    var arguments = new System.Collections.Generic.List<object> { evt };
-                    if (parameters.Length == 2 && parameters[1].ParameterType == typeof(System.Threading.CancellationToken))
-                    {
-                        arguments.Add(token);
-                    }
-                    await (System.Threading.Tasks.Task)_executor.Execute(_methodInfo.IsStatic ? null : (_targetInstance ?? context.GetInstance(_targetType)), arguments.ToArray());
-#if !NetCore
-                    transaction?.Complete();
-#endif
+                    arguments.Add(token);
                 }
+                await (System.Threading.Tasks.Task)_executor.Execute(_methodInfo.IsStatic ? null : (_targetInstance ?? context.GetInstance(_targetType)), arguments.ToArray());
+#if !NetCore
+                transaction?.Complete();
+#endif
             }
         }
 #endif
