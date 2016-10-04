@@ -18,7 +18,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;Net451</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -26,7 +26,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;Net451</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -37,14 +37,30 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Transactions" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assert.cs" />
+    <Compile Include="DiscoverFixture.cs" />
+    <Compile Include="Events\AllowTransactionEvent.cs" />
+    <Compile Include="Events\CreateRoleEvent.cs" />
     <Compile Include="Events\CreateUserEvent.cs" />
+    <Compile Include="Events\MandatoryTransactionEvent.cs" />
+    <Compile Include="Events\NotAllowTransactionEvent.cs" />
+    <Compile Include="Events\UpdateRoleEvent.cs" />
     <Compile Include="Events\UpdateUserEvent.cs" />
+    <Compile Include="Handlers\GenericActionTarget.cs" />
     <Compile Include="Handlers\HandleAsyncEventTarget.cs" />
     <Compile Include="Handlers\HandleSyncEventTarget.cs" />
+    <Compile Include="Handlers\InvalidReturnAsyncTarget.cs" />
+    <Compile Include="Handlers\InvalidReturnSyncTarget.cs" />
+    <Compile Include="Handlers\LegalEventTarget.cs" />
+    <Compile Include="Handlers\MultipleParameterActionTarget.cs" />
+    <Compile Include="Handlers\OutParameterActionTarget.cs" />
+    <Compile Include="Handlers\RefParameterActionTarget.cs" />
+    <Compile Include="LambdaEventHandlerFixture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TriggerEventFixture.cs" />
+    <Compile Include="ReflectEventHandlerFixture.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\build\net451\EventBuster\EventBuster.net451.csproj">

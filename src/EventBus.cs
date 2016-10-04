@@ -72,29 +72,53 @@ namespace EventBuster
         /// </summary>
         /// <typeparam name="TEvent">The event type.</typeparam>
         /// <param name="action">The handler action.</param>
-        public static void Register<TEvent>(Action<TEvent> action)
+        /// <param name="priority">The execute priority of the invoker.</param>
+#if !NetCore
+        /// <param name="transactionFlow">The transaction flow policy.</param>
+#endif
+        public static void Register<TEvent>(Action<TEvent> action, HandlerPriority priority = HandlerPriority.Normal
+#if !NetCore
+                , TransactionFlowOption transactionFlow = TransactionFlowOption.Allowed
+#endif
+            )
         {
             if (action == null)
             {
                 throw new ArgumentNullException(nameof(action));
             }
-            Default.Register(new LambdaActionInvoker<TEvent>(action));
+#if !NetCore
+            Default.Register(new LambdaActionInvoker<TEvent>(action), priority, transactionFlow);
+#else
+            Default.Register(new LambdaActionInvoker<TEvent>(action), priority);
+#endif
         }
 
 #if !Net35
-        
+
         /// <summary>
         /// Registers handler action to an event.
         /// </summary>
         /// <typeparam name="TEvent">The event type.</typeparam>
         /// <param name="asyncAction">The handler action.</param>
-        public static void Register<TEvent>(Func<TEvent, System.Threading.Tasks.Task> asyncAction)
+        /// <param name="priority">The execute priority of the invoker.</param>
+#if !NetCore
+        /// <param name="transactionFlow">The transaction flow policy.</param>
+#endif
+        public static void Register<TEvent>(Func<TEvent, System.Threading.Tasks.Task> asyncAction, HandlerPriority priority = HandlerPriority.Normal
+#if !NetCore
+                , TransactionFlowOption transactionFlow = TransactionFlowOption.Allowed
+#endif
+            )
         {
             if (asyncAction == null)
             {
                 throw new ArgumentNullException(nameof(asyncAction));
             }
-            Default.Register(new LambdaActionInvoker<TEvent>(asyncAction));
+#if !NetCore
+            Default.Register(new LambdaActionInvoker<TEvent>(asyncAction), priority, transactionFlow);
+#else
+            Default.Register(new LambdaActionInvoker<TEvent>(asyncAction), priority);
+#endif
         }
 
         /// <summary>
@@ -102,13 +126,75 @@ namespace EventBuster
         /// </summary>
         /// <typeparam name="TEvent">The event type.</typeparam>
         /// <param name="asyncAction">The handler action.</param>
-        public static void Register<TEvent>(Func<TEvent, System.Threading.CancellationToken, System.Threading.Tasks.Task> asyncAction)
+        /// <param name="priority">The execute priority of the invoker.</param>
+#if !NetCore
+        /// <param name="transactionFlow">The transaction flow policy.</param>
+#endif
+        public static void Register<TEvent>(Func<TEvent, System.Threading.CancellationToken, System.Threading.Tasks.Task> asyncAction, HandlerPriority priority = HandlerPriority.Normal
+#if !NetCore
+                , TransactionFlowOption transactionFlow = TransactionFlowOption.Allowed
+#endif
+            )
         {
             if (asyncAction == null)
             {
                 throw new ArgumentNullException(nameof(asyncAction));
             }
-            Default.Register(new LambdaActionInvoker<TEvent>(asyncAction));
+#if !NetCore
+            Default.Register(new LambdaActionInvoker<TEvent>(asyncAction), priority, transactionFlow);
+#else
+            Default.Register(new LambdaActionInvoker<TEvent>(asyncAction), priority);
+#endif
+        }
+
+#endif
+
+#if !NetCore
+        /// <summary>
+        /// Registers handler action to an event.
+        /// </summary>
+        /// <typeparam name="TEvent">The event type.</typeparam>
+        /// <param name="action">The handler action.</param>
+        /// <param name="transactionFlow">The transaction flow policy.</param>
+        public static void Register<TEvent>(Action<TEvent> action, TransactionFlowOption transactionFlow)
+        {
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+            Default.Register(new LambdaActionInvoker<TEvent>(action), HandlerPriority.Normal, transactionFlow);
+        }
+#endif
+#if Net451
+
+        /// <summary>
+        /// Registers handler action to an event.
+        /// </summary>
+        /// <typeparam name="TEvent">The event type.</typeparam>
+        /// <param name="asyncAction">The handler action.</param>
+        /// <param name="transactionFlow">The transaction flow policy.</param>
+        public static void Register<TEvent>(Func<TEvent, System.Threading.Tasks.Task> asyncAction, TransactionFlowOption transactionFlow)
+        {
+            if (asyncAction == null)
+            {
+                throw new ArgumentNullException(nameof(asyncAction));
+            }
+            Default.Register(new LambdaActionInvoker<TEvent>(asyncAction), HandlerPriority.Normal, transactionFlow);
+        }
+
+        /// <summary>
+        /// Registers handler action to an event.
+        /// </summary>
+        /// <typeparam name="TEvent">The event type.</typeparam>
+        /// <param name="asyncAction">The handler action.</param>
+        /// <param name="transactionFlow">The transaction flow policy.</param>
+        public static void Register<TEvent>(Func<TEvent, System.Threading.CancellationToken, System.Threading.Tasks.Task> asyncAction, TransactionFlowOption transactionFlow)
+        {
+            if (asyncAction == null)
+            {
+                throw new ArgumentNullException(nameof(asyncAction));
+            }
+            Default.Register(new LambdaActionInvoker<TEvent>(asyncAction), HandlerPriority.Normal, transactionFlow);
         }
 
 #endif

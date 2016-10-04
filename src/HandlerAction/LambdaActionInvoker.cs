@@ -70,7 +70,21 @@ namespace EventBuster
                     ThrowHelper.ThrowWrongValueTypeArgumentException(evt, typeof(TEvent));
                     return;
                 }
-                _action.Invoke(eventArgs);
+                using (var transaction =
+#if Net35
+                    context.CreateTransactionScope()
+#elif Net451
+                    context.CreateTransactionScope(System.Transactions.TransactionScopeAsyncFlowOption.Suppress)
+#else
+                    (IDisposable)null
+#endif
+                    )
+                {
+                    _action.Invoke(eventArgs);
+#if !NetCore
+                    transaction?.Complete();
+#endif
+                }
             }
         }
 
@@ -94,13 +108,25 @@ namespace EventBuster
                 ThrowHelper.ThrowWrongValueTypeArgumentException(evt, typeof(TEvent));
                 return;
             }
-            if (_func != null)
+            using (var transaction =
+#if NetCore
+                    (IDisposable)null
+#else
+                    context.CreateTransactionScope(System.Transactions.TransactionScopeAsyncFlowOption.Enabled)
+#endif
+                    )
             {
-                await _func(eventArgs);
-            }
-            else if (_func2 != null)
-            {
-                await _func2(eventArgs, token);
+                if (_func != null)
+                {
+                    await _func(eventArgs);
+                }
+                else if (_func2 != null)
+                {
+                    await _func2(eventArgs, token);
+                }
+#if !NetCore
+                transaction?.Complete();
+#endif
             }
         }
 #endif

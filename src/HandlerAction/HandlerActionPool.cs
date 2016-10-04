@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace EventBuster
 {
@@ -55,6 +56,19 @@ namespace EventBuster
                         }
                     }
                     return true;
+                }
+                return false;
+            }
+        }
+
+        public bool Remove(IHandlerActionInvoker invoker)
+        {
+            lock (_lockObject)
+            {
+                var actionDescriptor = _actionPool.FirstOrDefault(descriptor => Equals(descriptor.Invoker, invoker));
+                if (actionDescriptor != null)
+                {
+                    return Remove(actionDescriptor);
                 }
                 return false;
             }

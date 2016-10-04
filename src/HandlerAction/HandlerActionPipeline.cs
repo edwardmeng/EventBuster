@@ -100,7 +100,10 @@ namespace EventBuster
                             actionDescriptor.Invoker.Invoke(context, evt);
                         }
                     }
-                    System.Threading.Tasks.Task.WaitAll(tasks.ToArray());
+                    if (tasks.Count > 0)
+                    {
+                        System.Threading.Tasks.Task.WaitAll(tasks.ToArray());
+                    }
                 }
             }
 #else
@@ -123,7 +126,7 @@ namespace EventBuster
                 }
                 else
                 {
-                    actionDescriptor.Invoker.Invoke(context,evt);
+                    actionDescriptor.Invoker.Invoke(context, evt);
                 }
             }
         }

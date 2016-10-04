@@ -94,11 +94,23 @@ namespace EventBuster
         /// Registers handler action invoker to an event. 
         /// </summary>
         /// <param name="invoker">The handler action invoker.</param>
-        public void Register(IHandlerActionInvoker invoker)
+        /// <param name="priority">The execute priority of the invoker.</param>
+#if !NetCore
+        /// <param name="transactionFlow">The transaction flow policy.</param>
+#endif
+        public void Register(IHandlerActionInvoker invoker, HandlerPriority priority = HandlerPriority.Normal
+#if !NetCore
+                , TransactionFlowOption transactionFlow = TransactionFlowOption.Allowed
+#endif
+            )
         {
             _pool.Add(new HandlerActionDescriptor
             {
-                Invoker = invoker
+                Invoker = invoker,
+                Priority = priority,
+#if !NetCore
+                TransactionFlow = transactionFlow
+#endif
             });
         }
 
@@ -136,10 +148,7 @@ namespace EventBuster
         /// <param name="invoker">The handler action invoker.</param>
         public void Unregister(IHandlerActionInvoker invoker)
         {
-            _pool.Remove(new HandlerActionDescriptor
-            {
-                Invoker = invoker
-            });
+            _pool.Remove(invoker);
         }
 
         #endregion
