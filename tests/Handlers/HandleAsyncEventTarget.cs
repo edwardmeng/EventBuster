@@ -6,6 +6,7 @@ namespace EventBuster.UnitTests
     public class HandleAsyncEventTarget
     {
         public static object GlobalState;
+        public string InstanceState;
         [EventHandler]
         public Task OnUserUpdated(UpdateUserEvent evt)
         {
@@ -36,6 +37,12 @@ namespace EventBuster.UnitTests
             Thread.Sleep(100);
             GlobalState = evt.RoleName + ":Step2";
             return Task.Delay(0);
+        }
+
+        [EventHandler]
+        public void OnRoleUpdated(UpdateRoleEvent evt)
+        {
+            InstanceState = evt.RoleName;
         }
 
         [EventHandler(TransactionFlow = TransactionFlowOption.NotAllowed)]

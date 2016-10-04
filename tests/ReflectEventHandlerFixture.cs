@@ -28,7 +28,6 @@ namespace EventBuster.UnitTests
 
             try
             {
-                HandleSyncEventTarget.CtorState = 0;
                 EventBus.Trigger(new CreateRoleEvent { RoleName = "EventBuster" });
                 Assert.Equal("EventBuster:Step1", HandleSyncEventTarget.GlobalState);
             }
@@ -51,6 +50,22 @@ namespace EventBuster.UnitTests
             finally
             {
                 EventBus.Unregister<HandleSyncEventTarget>();
+            }
+        }
+
+        [Test]
+        public void HandleInstanceEventInSyncMode()
+        {
+            var instance = new HandleSyncEventTarget();
+            EventBus.Register(instance);
+            try
+            {
+                EventBus.Trigger(new UpdateRoleEvent { RoleName = "EventBuster" });
+                Assert.Equal("EventBuster", instance.InstanceState);
+            }
+            finally
+            {
+                EventBus.Unregister(instance);
             }
         }
 
@@ -118,6 +133,22 @@ namespace EventBuster.UnitTests
             finally
             {
                 EventBus.Unregister<HandleAsyncEventTarget>();
+            }
+        }
+
+        [Test]
+        public async System.Threading.Tasks.Task HandleInstanceEventInAsyncMode()
+        {
+            var instance = new HandleAsyncEventTarget();
+            EventBus.Register(instance);
+            try
+            {
+                await EventBus.TriggerAsync(new UpdateRoleEvent { RoleName = "EventBuster" });
+                Assert.Equal("EventBuster", instance.InstanceState);
+            }
+            finally
+            {
+                EventBus.Unregister(instance);
             }
         }
 

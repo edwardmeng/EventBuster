@@ -5,6 +5,7 @@ namespace EventBuster.UnitTests
     {
         public static object GlobalState;
         public static int CtorState;
+        public string InstanceState;
 
         public HandleSyncEventTarget()
         {
@@ -33,6 +34,12 @@ namespace EventBuster.UnitTests
         public void OnRoleCreateStepSecond(CreateRoleEvent evt)
         {
             GlobalState = evt.RoleName + ":Step2";
+        }
+
+        [EventHandler]
+        public void OnRoleUpdated(UpdateRoleEvent evt)
+        {
+            InstanceState = evt.RoleName;
         }
 
         [EventHandler(TransactionFlow = TransactionFlowOption.NotAllowed)]

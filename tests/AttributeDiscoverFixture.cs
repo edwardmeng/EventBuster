@@ -3,7 +3,7 @@ using NUnit.Framework;
 
 namespace EventBuster.UnitTests
 {
-    public class DiscoverFixture
+    public class AttributeDiscoverFixture
     {
         [Test]
         public void ValidateGenericMethod()

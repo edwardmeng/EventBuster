@@ -30,6 +30,12 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\EventBuster.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="nunit.framework, Version=3.4.1.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
       <HintPath>..\packages\NUnit.3.4.1\lib\net45\nunit.framework.dll</HintPath>
@@ -40,8 +46,12 @@
     <Reference Include="System.Transactions" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\GlobalAssemblyInfo.cs">
+      <Link>Properties\GlobalAssemblyInfo.cs</Link>
+    </Compile>
     <Compile Include="Assert.cs" />
-    <Compile Include="DiscoverFixture.cs" />
+    <Compile Include="AttributeDiscoverFixture.cs" />
+    <Compile Include="EventBusFixture.cs" />
     <Compile Include="Events\AllowTransactionEvent.cs" />
     <Compile Include="Events\CreateRoleEvent.cs" />
     <Compile Include="Events\CreateUserEvent.cs" />
@@ -49,6 +59,8 @@
     <Compile Include="Events\NotAllowTransactionEvent.cs" />
     <Compile Include="Events\UpdateRoleEvent.cs" />
     <Compile Include="Events\UpdateUserEvent.cs" />
+    <Compile Include="Handlers\CustomActivateTarget.cs" />
+    <Compile Include="Handlers\CustomEventTarget.cs" />
     <Compile Include="Handlers\GenericActionTarget.cs" />
     <Compile Include="Handlers\HandleAsyncEventTarget.cs" />
     <Compile Include="Handlers\HandleSyncEventTarget.cs" />
@@ -69,6 +81,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\EventBuster.snk">
+      <Link>Properties\EventBuster.snk</Link>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
