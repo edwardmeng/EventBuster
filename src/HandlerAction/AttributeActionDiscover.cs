@@ -44,7 +44,8 @@ namespace EventBuster
                 ThrowHelper.ThrowHandlerActionMethodMustBeSingleParameterException(method);
             }
 #if !Net35
-            if ((IsAsyncMethod(method) && method.ReturnType != typeof(System.Threading.Tasks.Task)) || method.ReturnType != typeof(void))
+            var isAsync = IsAsyncMethod(method);
+            if ((isAsync && method.ReturnType != typeof(System.Threading.Tasks.Task)) || (!isAsync && method.ReturnType != typeof(void)))
             {
                 ThrowHelper.ThrowHandlerActionMethodCannotReturnException(method);
             }
