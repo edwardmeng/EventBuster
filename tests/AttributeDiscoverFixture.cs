@@ -75,7 +75,14 @@ namespace EventBuster.UnitTests
 #endif
         public void DiscoverLegalActions()
         {
-            Assert.NotThrow(EventBus.Register<LegalEventTarget>);
+            try
+            {
+                Assert.NotThrow(EventBus.Register<LegalEventTarget>);
+            }
+            finally
+            {
+                EventBus.Unregister<LegalEventTarget>();
+            }
         }
     }
 }

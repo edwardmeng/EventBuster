@@ -97,12 +97,7 @@ namespace EventBuster.UnitTests
             finally
             {
                 EventBus.Unregister<CustomEventTarget>();
-                EventBus.Default.SetServiceProvider(() =>
-                {
-                    var serviceProvider = new ServiceProvider();
-                    serviceProvider.AddInstance<IHandlerActivator>(new DefaultHandlerActivator());
-                    return serviceProvider;
-                });
+                ((DefaultEventBus)EventBus.Default).ResetServiceProvider();
             }
         }
 
@@ -131,12 +126,7 @@ namespace EventBuster.UnitTests
             finally
             {
                 EventBus.Unregister<CustomEventTarget>();
-                EventBus.Default.SetServiceProvider(() =>
-                {
-                    var serviceProvider = new ServiceProvider();
-                    serviceProvider.AddInstance<IHandlerActivator>(new DefaultHandlerActivator());
-                    return serviceProvider;
-                });
+                ((DefaultEventBus)EventBus.Default).ResetServiceProvider();
             }
         }
     }

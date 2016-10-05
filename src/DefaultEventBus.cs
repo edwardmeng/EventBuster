@@ -62,6 +62,12 @@ namespace EventBuster
             _serviceProvider = null;
         }
 
+        internal void ResetServiceProvider()
+        {
+            _serviceProviderFactory = null;
+            _serviceProvider = null;
+        }
+
         #endregion
 
         #region Register

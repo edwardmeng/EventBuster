@@ -33,6 +33,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
+    <DisableOutOfProcTaskHost>true</DisableOutOfProcTaskHost>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>..\..\..\EventBuster.snk</AssemblyOriginatorKeyFile>
