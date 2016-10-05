@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
+using System.Reflection;
 
 namespace EventBuster.UnitTests
 {
@@ -39,7 +39,7 @@ namespace EventBuster.UnitTests
             {
                 var instance = Activator.CreateInstance(handlerType);
                 var property = handlerType.GetProperty("CustomState");
-                property?.SetValue(instance, "EventBus");
+                property?.SetValue(instance, "EventBus", new object[0]);
                 return instance;
             }
 
@@ -49,7 +49,11 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public void RegisterCustomDiscover()
         {
             var discover = new CustomHandlerActionDiscover();
@@ -69,7 +73,11 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public void RegisterCustomActivator()
         {
             EventBus.Default.SetServiceProvider(() =>
@@ -98,7 +106,11 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public void RegisterServiceBasedActivator()
         {
             var targetInstance = new CustomActivateTarget {InstanceState = "EventBus" };

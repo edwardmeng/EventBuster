@@ -15,7 +15,7 @@
                 "excludeFiles": [ "../../../src/EventBusActivator.cs", "../../../src/TransactionFlowOption.cs" ]
             },
             "embed": {
-                "include": [ "../../src/**/*.resx" ]
+                "include": [ "../../../src/**/*.resx" ]
             },
             "define": [ "NetCore" ],
             "keyFile": "../../../EventBuster.snk",

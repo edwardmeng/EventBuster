@@ -1,0 +1,31 @@
+﻿{
+    "version": "1.0.0-*",
+    "testRunner": "xunit",
+    "dependencies": {
+        "Microsoft.NETCore.App": {
+            "version": "1.0.0-*",
+            "type": "platform"
+        },
+        "EventBuster": { "target": "project" },
+        "xunit": "2.2.0-beta2-build3300",
+        "dotnet-test-xunit": "2.2.0-preview2-build1029",
+        "xunit.runner.console": "2.2.0-beta2-build3300"
+    },
+
+    "frameworks": {
+        "netcoreapp1.0": {
+            "imports": "dotnet5.6",
+            "buildOptions": {
+                "compile": {
+                    "include": [ "../../../GlobalAssemblyInfo.cs", "../../../tests/**/*.cs" ]
+                },
+                "copyToOutput": {
+                    "include": [ "xunit.runner.json" ]
+                },
+                "define": [ "NetCore" ],
+                "keyFile": "../../../EventBuster.snk",
+                "xmlDoc": false
+            }
+        }
+    }
+}

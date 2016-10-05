@@ -1,47 +1,78 @@
 ﻿using System;
-using NUnit.Framework;
 
 namespace EventBuster.UnitTests
 {
     public class AttributeDiscoverFixture
     {
-        [Test]
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public void ValidateGenericMethod()
         {
             Assert.Throws<InvalidOperationException>(EventBus.Register<GenericActionTarget>);
         }
 
-        [Test]
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public void ValidateOutParameter()
         {
             Assert.Throws<InvalidOperationException>(EventBus.Register<OutParameterActionTarget>);
         }
 
-        [Test]
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public void ValidateRefParameter()
         {
             Assert.Throws<InvalidOperationException>(EventBus.Register<RefParameterActionTarget>);
         }
 
-        [Test]
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public void ValidateMultipleParameter()
         {
             Assert.Throws<InvalidOperationException>(EventBus.Register<MultipleParameterActionTarget>);
         }
 
-        [Test]
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public void ValidateInvalidReturnSyncMethod()
         {
             Assert.Throws<InvalidOperationException>(EventBus.Register<InvalidReturnSyncTarget>);
         }
 
-        [Test]
+#if !Net35
+         
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public void ValidateInvalidReturnAsyncMethod()
         {
             Assert.Throws<InvalidOperationException>(EventBus.Register<InvalidReturnAsyncTarget>);
         }
 
-        [Test]
+#endif
+
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public void DiscoverLegalActions()
         {
             Assert.NotThrow(EventBus.Register<LegalEventTarget>);

@@ -58,8 +58,8 @@
     <Compile Include="..\..\..\src\EventTriggering.cs">
       <Link>EventTriggering.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\src\HandlerAction\ClosedGenericMatcher.cs">
-      <Link>HandlerAction\ClosedGenericMatcher.cs</Link>
+    <Compile Include="..\..\..\src\Invoker\ClosedGenericMatcher.cs">
+      <Link>Invoker\ClosedGenericMatcher.cs</Link>
     </Compile>
     <Compile Include="..\..\..\src\HandlerAction\HandlerActionContext.cs">
       <Link>HandlerAction\HandlerActionContext.cs</Link>
@@ -70,14 +70,14 @@
     <Compile Include="..\..\..\src\HandlerAction\HandlerActionPool.cs">
       <Link>HandlerAction\HandlerActionPool.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\src\HandlerAction\IHandlerActionDiscover.cs">
-      <Link>HandlerAction\IHandlerActionDiscover.cs</Link>
+    <Compile Include="..\..\..\src\Discover\IHandlerActionDiscover.cs">
+      <Link>Discover\IHandlerActionDiscover.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\src\HandlerAction\ObjectMethodExecutor.cs">
-      <Link>HandlerAction\ObjectMethodExecutor.cs</Link>
+    <Compile Include="..\..\..\src\Invoker\ObjectMethodExecutor.cs">
+      <Link>Invoker\ObjectMethodExecutor.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\src\HandlerAction\AttributeActionDiscover.cs">
-      <Link>HandlerAction\AttributeActionDiscover.cs</Link>
+    <Compile Include="..\..\..\src\Discover\AttributeActionDiscover.cs">
+      <Link>Discover\AttributeActionDiscover.cs</Link>
     </Compile>
     <Compile Include="..\..\..\src\HandlerPriority.cs">
       <Link>HandlerPriority.cs</Link>
@@ -85,14 +85,14 @@
     <Compile Include="..\..\..\src\HandlerAction\HandlerActionDescriptor.cs">
       <Link>HandlerAction\HandlerActionDescriptor.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\src\HandlerAction\IHandlerActionInvoker.cs">
-      <Link>HandlerAction\IHandlerActionInvoker.cs</Link>
+    <Compile Include="..\..\..\src\Invoker\IHandlerActionInvoker.cs">
+      <Link>Invoker\IHandlerActionInvoker.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\src\HandlerAction\LambdaActionInvoker.cs">
-      <Link>HandlerAction\LambdaActionInvoker.cs</Link>
+    <Compile Include="..\..\..\src\Invoker\LambdaActionInvoker.cs">
+      <Link>Invoker\LambdaActionInvoker.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\src\HandlerAction\ReflectionActionInvoker.cs">
-      <Link>HandlerAction\ReflectionActionInvoker.cs</Link>
+    <Compile Include="..\..\..\src\Invoker\ReflectionActionInvoker.cs">
+      <Link>Invoker\ReflectionActionInvoker.cs</Link>
     </Compile>
     <Compile Include="..\..\..\src\IEventBus.cs">
       <Link>IEventBus.cs</Link>

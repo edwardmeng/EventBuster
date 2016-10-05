@@ -12,6 +12,8 @@
         {
         }
 
+#if !Net35
+         
         [EventHandler]
         public System.Threading.Tasks.Task HandleAsyncEvent(CreateUserEvent evt)
         {
@@ -35,5 +37,7 @@
         {
             return System.Threading.Tasks.Task.Delay(0, token);
         }
+
+#endif
     }
 }

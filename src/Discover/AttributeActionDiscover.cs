@@ -64,6 +64,11 @@ namespace EventBuster
                     ThrowHelper.ThrowAsyncHandlerActionMethodInvalidSecondParameter(method);
                 }
             }
+#else
+            if(method.ReturnType != typeof(void))
+            {
+                ThrowHelper.ThrowHandlerActionMethodCannotReturnException(method);
+            }
 #endif
         }
 

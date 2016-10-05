@@ -1,11 +1,14 @@
 ﻿using System;
-using NUnit.Framework;
 
 namespace EventBuster.UnitTests
 {
     public class LambdaEventHandlerFixture
     {
-        [Test]
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public void RemoveSyncLambdaActionHandler()
         {
             object globalState = null;
@@ -28,7 +31,11 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public void HandlerPriorityInSyncActions()
         {
             object globalState = null;
@@ -56,7 +63,11 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public void HandleSyncEventInSyncMode()
         {
             object globalState = null;
@@ -76,7 +87,11 @@ namespace EventBuster.UnitTests
 
 #if !Net35
 
-        [Test]
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public async System.Threading.Tasks.Task RemoveAsyncLambdaHandler()
         {
             object globalState = null;
@@ -104,7 +119,11 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public async System.Threading.Tasks.Task RemoveAsyncLambdaHandlerWithToken()
         {
             object globalState = null;
@@ -132,7 +151,11 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public async System.Threading.Tasks.Task HandlerPriorityInAsyncActions()
         {
             object globalState = null;
@@ -163,7 +186,11 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public async System.Threading.Tasks.Task HandleSyncEventInAsyncMode()
         {
             object globalState = null;
@@ -181,7 +208,11 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public void HandleAsyncEventInSyncMode()
         {
             object globalState = null;
@@ -204,7 +235,11 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public void HandleAsyncEventWithTokenInSyncMode()
         {
             object globalState = null;
@@ -227,7 +262,11 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public async System.Threading.Tasks.Task HandleAsyncEventInAsyncMode()
         {
             object globalState = null;
@@ -250,7 +289,11 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public async System.Threading.Tasks.Task HandleAsyncEventWithTokenInAsyncMode()
         {
             object globalState = null;
@@ -277,7 +320,7 @@ namespace EventBuster.UnitTests
 
 #if !NetCore
 
-        [Test]
+        [NUnit.Framework.Test]
         public void HandleNotAllowTransactionInSyncMode()
         {
             string globalState = null;
@@ -302,7 +345,7 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+        [NUnit.Framework.Test]
         public void HandleMandatoryTransactionInScopeSyncMode()
         {
             string globalState = null;
@@ -329,7 +372,7 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+        [NUnit.Framework.Test]
         public void HandleMandatoryTransactionOutScopeInSyncMode()
         {
             string globalState = null;
@@ -350,7 +393,7 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+        [NUnit.Framework.Test]
         public void HandleAllowedTransactionInScopeSyncMode()
         {
             string globalState = null;
@@ -377,7 +420,7 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+        [NUnit.Framework.Test]
         public void HandleAllowedTransactionOutScopeInSyncMode()
         {
             string globalState = null;
@@ -401,7 +444,7 @@ namespace EventBuster.UnitTests
 
 #if Net451
 
-        [Test]
+        [NUnit.Framework.Test]
         public async System.Threading.Tasks.Task HandleNotAllowTransactionInAsyncMode()
         {
             string globalState = null;
@@ -428,7 +471,7 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+        [NUnit.Framework.Test]
         public async System.Threading.Tasks.Task HandleNotAllowTransactionInAsyncModeWithToken()
         {
             string globalState = null;
@@ -455,7 +498,7 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+        [NUnit.Framework.Test]
         public async System.Threading.Tasks.Task HandleMandatoryTransactionInScopeAsyncMode()
         {
             string globalState = null;
@@ -484,7 +527,7 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+        [NUnit.Framework.Test]
         public async System.Threading.Tasks.Task HandleMandatoryTransactionInScopeAsyncModeWithToken()
         {
             string globalState = null;
@@ -513,7 +556,7 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+        [NUnit.Framework.Test]
         public async System.Threading.Tasks.Task HandleMandatoryTransactionOutScopeInAsyncMode()
         {
             string globalState = null;
@@ -536,7 +579,7 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+        [NUnit.Framework.Test]
         public async System.Threading.Tasks.Task HandleMandatoryTransactionOutScopeInAsyncModeWithToken()
         {
             string globalState = null;
@@ -559,7 +602,7 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+        [NUnit.Framework.Test]
         public async System.Threading.Tasks.Task HandleAllowedTransactionInScopeAsyncMode()
         {
             string globalState = null;
@@ -588,7 +631,7 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+        [NUnit.Framework.Test]
         public async System.Threading.Tasks.Task HandleAllowedTransactionInScopeAsyncModeWithToken()
         {
             string globalState = null;
@@ -617,7 +660,7 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+        [NUnit.Framework.Test]
         public async System.Threading.Tasks.Task HandleAllowedTransactionOutScopeInAsyncMode()
         {
             string globalState = null;
@@ -640,7 +683,7 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+        [NUnit.Framework.Test]
         public async System.Threading.Tasks.Task HandleAllowedTransactionOutScopeInAsyncModeWithToken()
         {
             string globalState = null;

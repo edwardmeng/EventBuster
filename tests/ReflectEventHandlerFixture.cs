@@ -1,10 +1,12 @@
-﻿using NUnit.Framework;
-
-namespace EventBuster.UnitTests
+﻿namespace EventBuster.UnitTests
 {
     public class ReflectEventHandlerFixture
     {
-        [Test]
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public void ActivateOnceWhenMultipleAction()
         {
             EventBus.Register<HandleSyncEventTarget>();
@@ -21,7 +23,11 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public void HandlerPriorityInSyncActions()
         {
             EventBus.Register<HandleSyncEventTarget>();
@@ -37,7 +43,11 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public void HandleSyncEventInSyncMode()
         {
             EventBus.Register<HandleSyncEventTarget>();
@@ -53,7 +63,11 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public void HandleInstanceEventInSyncMode()
         {
             var instance = new HandleSyncEventTarget();
@@ -71,7 +85,11 @@ namespace EventBuster.UnitTests
 
 #if !Net35
 
-        [Test]
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public async System.Threading.Tasks.Task HandlerPriorityInAsyncActions()
         {
             EventBus.Register<HandleAsyncEventTarget>();
@@ -87,8 +105,12 @@ namespace EventBuster.UnitTests
                 EventBus.Unregister<HandleAsyncEventTarget>();
             }
         }
-         
-        [Test]
+
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public async System.Threading.Tasks.Task HandleSyncEventInAsyncMode()
         {
             EventBus.Register<HandleSyncEventTarget>();
@@ -104,7 +126,11 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public void HandleAsyncEventInSyncMode()
         {
             EventBus.Register<HandleAsyncEventTarget>();
@@ -120,7 +146,11 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public async System.Threading.Tasks.Task HandleAsyncEventInAsyncMode()
         {
             EventBus.Register<HandleAsyncEventTarget>();
@@ -136,7 +166,11 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
         public async System.Threading.Tasks.Task HandleInstanceEventInAsyncMode()
         {
             var instance = new HandleAsyncEventTarget();
@@ -156,7 +190,7 @@ namespace EventBuster.UnitTests
 
 #if !NetCore
 
-        [Test]
+        [NUnit.Framework.Test]
         public void HandleNotAllowTransactionInSyncMode()
         {
             EventBus.Register<HandleSyncEventTarget>();
@@ -177,7 +211,7 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+        [NUnit.Framework.Test]
         public void HandleMandatoryTransactionInScopeSyncMode()
         {
             EventBus.Register<HandleSyncEventTarget>();
@@ -200,7 +234,7 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+        [NUnit.Framework.Test]
         public void HandleMandatoryTransactionOutScopeInSyncMode()
         {
             EventBus.Register<HandleSyncEventTarget>();
@@ -217,7 +251,7 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+        [NUnit.Framework.Test]
         public void HandleAllowedTransactionInScopeSyncMode()
         {
             EventBus.Register<HandleSyncEventTarget>();
@@ -240,7 +274,7 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+        [NUnit.Framework.Test]
         public void HandleAllowedTransactionOutScopeInSyncMode()
         {
             EventBus.Register<HandleSyncEventTarget>();
@@ -261,7 +295,7 @@ namespace EventBuster.UnitTests
 
 #if Net451
 
-        [Test]
+        [NUnit.Framework.Test]
         public async System.Threading.Tasks.Task HandleNotAllowTransactionInAsyncMode()
         {
             EventBus.Register<HandleAsyncEventTarget>();
@@ -282,7 +316,7 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+        [NUnit.Framework.Test]
         public async System.Threading.Tasks.Task HandleMandatoryTransactionInScopeAsyncMode()
         {
             EventBus.Register<HandleAsyncEventTarget>();
@@ -305,7 +339,7 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+        [NUnit.Framework.Test]
         public async System.Threading.Tasks.Task HandleMandatoryTransactionOutScopeInAsyncMode()
         {
             EventBus.Register<HandleAsyncEventTarget>();
@@ -322,7 +356,7 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+        [NUnit.Framework.Test]
         public async System.Threading.Tasks.Task HandleAllowedTransactionInScopeAsyncMode()
         {
             EventBus.Register<HandleAsyncEventTarget>();
@@ -345,7 +379,7 @@ namespace EventBuster.UnitTests
             }
         }
 
-        [Test]
+        [NUnit.Framework.Test]
         public async System.Threading.Tasks.Task HandleAllowedTransactionOutScopeInAsyncMode()
         {
             EventBus.Register<HandleAsyncEventTarget>();

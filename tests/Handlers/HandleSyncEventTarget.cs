@@ -42,6 +42,8 @@ namespace EventBuster.UnitTests
             InstanceState = evt.RoleName;
         }
 
+#if !NetCore
+         
         [EventHandler(TransactionFlow = TransactionFlowOption.NotAllowed)]
         public void HandleNotAllowedTransaction(NotAllowTransactionEvent evt)
         {
@@ -65,5 +67,7 @@ namespace EventBuster.UnitTests
             var transaction = System.Transactions.Transaction.Current;
             GlobalState = transaction == null ? null : transaction.TransactionInformation.LocalIdentifier;
         }
+
+#endif
     }
 }

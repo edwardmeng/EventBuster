@@ -1,0 +1,97 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">14.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+
+  <Import Project="$(VSToolsPath)\DotNet\Microsoft.DotNet.Props" Condition="'$(VSToolsPath)' != ''" />
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>43298f31-3244-453f-a194-1c04b4e51ef0</ProjectGuid>
+    <RootNamespace>EventBuster.UnitTests</RootNamespace>
+    <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)'=='' ">.\obj</BaseIntermediateOutputPath>
+    <OutputPath Condition="'$(OutputPath)'=='' ">.\bin\</OutputPath>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\GlobalAssemblyInfo.cs">
+      <Link>Properties\GlobalAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\tests\Assert.cs">
+      <Link>Assert.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\tests\AttributeDiscoverFixture.cs">
+      <Link>AttributeDiscoverFixture.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\tests\EventBusFixture.cs">
+      <Link>EventBusFixture.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\tests\Events\AllowTransactionEvent.cs">
+      <Link>Events\AllowTransactionEvent.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\tests\Events\CreateRoleEvent.cs">
+      <Link>Events\CreateRoleEvent.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\tests\Events\CreateUserEvent.cs">
+      <Link>Events\CreateUserEvent.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\tests\Events\MandatoryTransactionEvent.cs">
+      <Link>Events\MandatoryTransactionEvent.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\tests\Events\NotAllowTransactionEvent.cs">
+      <Link>Events\NotAllowTransactionEvent.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\tests\Events\UpdateRoleEvent.cs">
+      <Link>Events\UpdateRoleEvent.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\tests\Events\UpdateUserEvent.cs">
+      <Link>Events\UpdateUserEvent.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\tests\Handlers\CustomActivateTarget.cs">
+      <Link>Handlers\CustomActivateTarget.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\tests\Handlers\CustomEventTarget.cs">
+      <Link>Handlers\CustomEventTarget.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\tests\Handlers\GenericActionTarget.cs">
+      <Link>Handlers\GenericActionTarget.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\tests\Handlers\HandleAsyncEventTarget.cs">
+      <Link>Handlers\HandleAsyncEventTarget.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\tests\Handlers\HandleSyncEventTarget.cs">
+      <Link>Handlers\HandleSyncEventTarget.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\tests\Handlers\InvalidReturnAsyncTarget.cs">
+      <Link>Handlers\InvalidReturnAsyncTarget.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\tests\Handlers\InvalidReturnSyncTarget.cs">
+      <Link>Handlers\InvalidReturnSyncTarget.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\tests\Handlers\LegalEventTarget.cs">
+      <Link>Handlers\LegalEventTarget.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\tests\Handlers\MultipleParameterActionTarget.cs">
+      <Link>Handlers\MultipleParameterActionTarget.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\tests\Handlers\OutParameterActionTarget.cs">
+      <Link>Handlers\OutParameterActionTarget.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\tests\Handlers\RefParameterActionTarget.cs">
+      <Link>Handlers\RefParameterActionTarget.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\tests\LambdaEventHandlerFixture.cs">
+      <Link>LambdaEventHandlerFixture.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\tests\Properties\AssemblyInfo.cs">
+      <Link>Properties\AssemblyInfo</Link>
+    </Compile>
+    <Compile Include="..\..\..\tests\ReflectEventHandlerFixture.cs">
+      <Link>ReflectEventHandlerFixture.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <PropertyGroup>
+    <SchemaVersion>2.0</SchemaVersion>
+  </PropertyGroup>
+  <Import Project="$(VSToolsPath)\DotNet\Microsoft.DotNet.targets" Condition="'$(VSToolsPath)' != ''" />
+</Project>
