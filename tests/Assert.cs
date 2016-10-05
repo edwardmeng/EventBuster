@@ -98,6 +98,18 @@ namespace EventBuster.UnitTests
 #endif
         }
 
+#if !Net35
+        public static async System.Threading.Tasks.Task ThrowsAsync<TException>(Func<System.Threading.Tasks.Task> code)
+            where TException : Exception
+        {
+#if NetCore
+            await Xunit.Assert.ThrowsAsync<TException>(code);
+#else
+            NUnit.Framework.Assert.ThrowsAsync<TException>(() => code());
+#endif
+        }
+#endif
+
         public static void NotThrow(Action code)
         {
 #if NetCore

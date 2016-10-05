@@ -85,6 +85,25 @@ namespace EventBuster.UnitTests
             }
         }
 
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
+        public void ThrowExceptionInSyncMode()
+        {
+            Action<CreateUserEvent> handlerAction = evt => { throw new NotSupportedException(); };
+            EventBus.Register(handlerAction);
+            try
+            {
+                Assert.Throws<NotSupportedException>(() => EventBus.Trigger(new CreateUserEvent {UserName = "EventBuster"}));
+            }
+            finally
+            {
+                EventBus.Unregister(handlerAction);
+            }
+        }
+
 #if !Net35
 
 #if NetCore
@@ -309,6 +328,44 @@ namespace EventBuster.UnitTests
             {
                 await EventBus.TriggerAsync(new UpdateUserEvent { UserName = "EventBuster" }, System.Threading.CancellationToken.None);
                 Assert.Equal("EventBuster", globalState);
+            }
+            finally
+            {
+                EventBus.Unregister(handlerAction);
+            }
+        }
+
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
+        public async System.Threading.Tasks.Task ThrowAsyncExceptionInAsyncMode()
+        {
+            Func<CreateUserEvent, System.Threading.Tasks.Task> handlerAction = evt => { throw new NotSupportedException(); };
+            EventBus.Register(handlerAction);
+            try
+            {
+                await Assert.ThrowsAsync<NotSupportedException>(() => EventBus.TriggerAsync(new CreateUserEvent { UserName = "EventBuster" }));
+            }
+            finally
+            {
+                EventBus.Unregister(handlerAction);
+            }
+        }
+
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
+        public void ThrowAsyncExceptionInSyncMode()
+        {
+            Func<CreateUserEvent, System.Threading.Tasks.Task> handlerAction = evt => { throw new NotSupportedException(); };
+            EventBus.Register(handlerAction);
+            try
+            {
+                Assert.Throws<NotSupportedException>(() => EventBus.Trigger(new CreateUserEvent { UserName = "EventBuster" }));
             }
             finally
             {

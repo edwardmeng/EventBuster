@@ -82,36 +82,28 @@ namespace EventBuster
 
         public void Invoke(IServiceProvider serviceProvider, IDictionary<Type, object> instancePool, object evt)
         {
-#if !Net35
-            lock (_lockObject)
-            {
-                foreach (var stage in _stages)
-                {
-                    var tasks = new List<System.Threading.Tasks.Task>();
-                    foreach (var actionDescriptor in stage)
-                    {
-                        var context = new HandlerActionContext(instancePool, actionDescriptor, serviceProvider);
-                        if (actionDescriptor.Invoker.IsAsync)
-                        {
-                            tasks.Add(actionDescriptor.Invoker.InvokeAsync(context, evt, System.Threading.CancellationToken.None));
-                        }
-                        else
-                        {
-                            actionDescriptor.Invoker.Invoke(context, evt);
-                        }
-                    }
-                    if (tasks.Count > 0)
-                    {
-                        System.Threading.Tasks.Task.WaitAll(tasks.ToArray());
-                    }
-                }
-            }
-#else
             foreach (var actionDescriptor in this)
             {
-                actionDescriptor.Invoker.Invoke(new HandlerActionContext(instancePool, actionDescriptor, serviceProvider), evt);
-            }
+                var context = new HandlerActionContext(instancePool, actionDescriptor, serviceProvider);
+#if !Net35
+                if (actionDescriptor.Invoker.IsAsync)
+                {
+                    try
+                    {
+                        actionDescriptor.Invoker.InvokeAsync(context, evt, System.Threading.CancellationToken.None).Wait();
+                    }
+                    catch (AggregateException ex)
+                    {
+                        System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                        throw;
+                    }
+                }
+                else
 #endif
+                {
+                    actionDescriptor.Invoker.Invoke(context, evt);
+                }
+            }
         }
 
 #if !Net35

@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace EventBuster.UnitTests
 {
     public class HandleSyncEventTarget
@@ -40,6 +42,12 @@ namespace EventBuster.UnitTests
         public void OnRoleUpdated(UpdateRoleEvent evt)
         {
             InstanceState = evt.RoleName;
+        }
+
+        [EventHandler]
+        public void ThrowException(CancelEvent evt)
+        {
+            throw new NotSupportedException();
         }
 
 #if !NetCore

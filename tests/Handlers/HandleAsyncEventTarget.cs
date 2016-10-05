@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace EventBuster.UnitTests
@@ -40,13 +41,21 @@ namespace EventBuster.UnitTests
         }
 
         [EventHandler]
-        public void OnRoleUpdated(UpdateRoleEvent evt)
+        public Task OnRoleUpdated(UpdateRoleEvent evt)
         {
+            Thread.Sleep(100);
             InstanceState = evt.RoleName;
+            return Task.Delay(0);
+        }
+
+        [EventHandler]
+        public Task ThrowException(CancelEvent evt)
+        {
+            throw new NotSupportedException();
         }
 
 #if !NetCore
-         
+
         [EventHandler(TransactionFlow = TransactionFlowOption.NotAllowed)]
         public Task HandleNotAllowedTransaction(NotAllowTransactionEvent evt)
         {

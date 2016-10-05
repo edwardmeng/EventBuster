@@ -1,4 +1,6 @@
-﻿namespace EventBuster.UnitTests
+﻿using System;
+
+namespace EventBuster.UnitTests
 {
     public class ReflectEventHandlerFixture
     {
@@ -80,6 +82,24 @@
             finally
             {
                 EventBus.Unregister(instance);
+            }
+        }
+
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
+        public void ThrowExceptionInSyncMode()
+        {
+            EventBus.Register<HandleSyncEventTarget>();
+            try
+            {
+                Assert.Throws<NotSupportedException>(() => EventBus.Trigger(new CancelEvent()));
+            }
+            finally
+            {
+                EventBus.Unregister<HandleSyncEventTarget>();
             }
         }
 
@@ -186,6 +206,42 @@
             }
         }
 
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
+        public async System.Threading.Tasks.Task ThrowAsyncExceptionInAsyncMode()
+        {
+            EventBus.Register<HandleAsyncEventTarget>();
+            try
+            {
+                await Assert.ThrowsAsync<NotSupportedException>(() => EventBus.TriggerAsync(new CancelEvent()));
+            }
+            finally
+            {
+                EventBus.Unregister<HandleAsyncEventTarget>();
+            }
+        }
+
+#if NetCore
+        [Xunit.Fact]
+#else
+        [NUnit.Framework.Test]
+#endif
+        public void ThrowAsyncExceptionInSyncMode()
+        {
+            EventBus.Register<HandleAsyncEventTarget>();
+            try
+            {
+                Assert.Throws<NotSupportedException>(() => EventBus.Trigger(new CancelEvent()));
+            }
+            finally
+            {
+                EventBus.Unregister<HandleAsyncEventTarget>();
+            }
+        }
+
 #endif
 
 #if !NetCore
@@ -226,7 +282,7 @@
                     transactionId = System.Transactions.Transaction.Current.TransactionInformation.LocalIdentifier;
                     transaction.Complete();
                 }
-                Assert.Equal(transactionId,HandleSyncEventTarget.GlobalState);
+                Assert.Equal(transactionId, HandleSyncEventTarget.GlobalState);
             }
             finally
             {
