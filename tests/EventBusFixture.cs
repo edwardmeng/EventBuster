@@ -9,7 +9,7 @@ namespace EventBuster.UnitTests
     {
         private class CustomHandlerActionDiscover : IHandlerActionDiscover
         {
-            public IEnumerable<HandlerActionDescriptor> Discover(IServiceProvider serviceProvider, Type type)
+            public IEnumerable<HandlerActionDescriptor> Discover(Type type)
             {
                 var methods = type.GetMethods();
                 return from method in methods
@@ -20,7 +20,7 @@ namespace EventBuster.UnitTests
                     };
             }
 
-            public IEnumerable<HandlerActionDescriptor> Discover(IServiceProvider serviceProvider, object instance)
+            public IEnumerable<HandlerActionDescriptor> Discover(object instance)
             {
                 var type = instance.GetType();
                 var methods = type.GetMethods();

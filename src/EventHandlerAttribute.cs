@@ -2,6 +2,9 @@
 
 namespace EventBuster
 {
+    /// <summary>
+    /// Indicates that the method that this attribute is applied to are considered as event handler action by the default discovery mechanism.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
     public class EventHandlerAttribute : Attribute
     {

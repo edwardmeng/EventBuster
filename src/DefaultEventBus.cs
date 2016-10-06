@@ -6,11 +6,18 @@ using System.Reflection;
 
 namespace EventBuster
 {
+    /// <summary>
+    /// The default implementation of <see cref="IEventBus"/>.
+    /// </summary>
     internal class DefaultEventBus : IEventBus
     {
+        #region Fields
+
         private readonly HandlerActionPool _pool = new HandlerActionPool();
         private Func<IServiceProvider> _serviceProviderFactory;
         private IServiceProvider _serviceProvider;
+
+        #endregion
 
         #region Ambient
 
@@ -52,6 +59,7 @@ namespace EventBuster
         /// Set the delegate that is used to retrieve the ambient <see cref="IServiceProvider"/>.
         /// </summary>
         /// <param name="newProvider">Delegate that, when called, will return the ambient <see cref="IServiceProvider"/>.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="newProvider"/> is null.</exception>
         public void SetServiceProvider(Func<IServiceProvider> newProvider)
         {
             if (newProvider == null)
@@ -76,9 +84,14 @@ namespace EventBuster
         /// Registers handler to an event. 
         /// </summary>
         /// <param name="handler">The event handle instance to handle event.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="handler"/> is null.</exception>
         public void Register(object handler)
         {
-            foreach (var actionDescriptor in Discovers.SelectMany(discover => discover.Discover(ServiceProvider, handler)))
+            if (handler == null)
+            {
+                throw new ArgumentNullException(nameof(handler));
+            }
+            foreach (var actionDescriptor in Discovers.SelectMany(discover => discover.Discover(handler)))
             {
                 _pool.Add(actionDescriptor);
             }
@@ -88,37 +101,59 @@ namespace EventBuster
         /// Registers handler type to an event.
         /// </summary>
         /// <param name="handlerType">The handler type.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="handlerType"/> is null.</exception>
         public void Register(Type handlerType)
         {
-            foreach (var actionDescriptor in Discovers.SelectMany(discover => discover.Discover(ServiceProvider, handlerType)))
+            if (handlerType == null)
+            {
+                throw new ArgumentNullException(nameof(handlerType));
+            }
+            foreach (var actionDescriptor in Discovers.SelectMany(discover => discover.Discover(handlerType)))
             {
                 _pool.Add(actionDescriptor);
             }
         }
-
+#if NetCore
         /// <summary>
         /// Registers handler action invoker to an event. 
         /// </summary>
         /// <param name="invoker">The handler action invoker.</param>
         /// <param name="priority">The execute priority of the invoker.</param>
-#if !NetCore
-        /// <param name="transactionFlow">The transaction flow policy.</param>
-#endif
-        public void Register(IHandlerActionInvoker invoker, HandlerPriority priority = HandlerPriority.Normal
-#if !NetCore
-                , TransactionFlowOption transactionFlow = TransactionFlowOption.Allowed
-#endif
-            )
+        /// <exception cref="ArgumentNullException"><paramref name="invoker"/> is null.</exception>
+        public void Register(IHandlerActionInvoker invoker, HandlerPriority priority = HandlerPriority.Normal)
         {
+            if (invoker == null)
+            {
+                throw new ArgumentNullException(nameof(invoker));
+            }
+            _pool.Add(new HandlerActionDescriptor
+            {
+                Invoker = invoker,
+                Priority = priority
+            });
+        }
+#else
+        /// <summary>
+        /// Registers handler action invoker to an event. 
+        /// </summary>
+        /// <param name="invoker">The handler action invoker.</param>
+        /// <param name="priority">The execute priority of the invoker.</param>
+        /// <param name="transactionFlow">The transaction flow policy.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="invoker"/> is null.</exception>
+        public void Register(IHandlerActionInvoker invoker, HandlerPriority priority = HandlerPriority.Normal, TransactionFlowOption transactionFlow = TransactionFlowOption.Allowed)
+        {
+            if (invoker == null)
+            {
+                throw new ArgumentNullException(nameof(invoker));
+            }
             _pool.Add(new HandlerActionDescriptor
             {
                 Invoker = invoker,
                 Priority = priority,
-#if !NetCore
                 TransactionFlow = transactionFlow
-#endif
             });
         }
+#endif
 
         #endregion
 
@@ -128,9 +163,14 @@ namespace EventBuster
         /// Unregisters handler to an event. 
         /// </summary>
         /// <param name="handler">The event handle instance to handle event.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="handler"/> is null.</exception>
         public void Unregister(object handler)
         {
-            foreach (var actionDescriptor in Discovers.SelectMany(discover => discover.Discover(ServiceProvider, handler)))
+            if (handler == null)
+            {
+                throw new ArgumentNullException(nameof(handler));
+            }
+            foreach (var actionDescriptor in Discovers.SelectMany(discover => discover.Discover(handler)))
             {
                 _pool.Remove(actionDescriptor);
             }
@@ -140,9 +180,14 @@ namespace EventBuster
         /// Unregisters handler type to an event.
         /// </summary>
         /// <param name="handlerType">The handler type.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="handlerType"/> is null.</exception>
         public void Unregister(Type handlerType)
         {
-            foreach (var actionDescriptor in Discovers.SelectMany(discover => discover.Discover(ServiceProvider, handlerType)))
+            if (handlerType == null)
+            {
+                throw new ArgumentNullException(nameof(handlerType));
+            }
+            foreach (var actionDescriptor in Discovers.SelectMany(discover => discover.Discover(handlerType)))
             {
                 _pool.Remove(actionDescriptor);
             }
@@ -152,8 +197,13 @@ namespace EventBuster
         /// Unregisters handler action invoker to an event. 
         /// </summary>
         /// <param name="invoker">The handler action invoker.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="invoker"/> is null.</exception>
         public void Unregister(IHandlerActionInvoker invoker)
         {
+            if (invoker == null)
+            {
+                throw new ArgumentNullException(nameof(invoker));
+            }
             _pool.Remove(invoker);
         }
 
@@ -161,6 +211,12 @@ namespace EventBuster
 
         #region Trigger
 
+        /// <summary>
+        /// Triggers an event.
+        /// </summary>
+        /// <typeparam name="TEvent">Event type</typeparam>
+        /// <param name="evt">Related data for the event</param>
+        /// <exception cref="ArgumentNullException"><paramref name="evt"/> is null.</exception>
         public void Trigger<TEvent>(TEvent evt)
         {
             if (evt == null) throw new ArgumentNullException(nameof(evt));
@@ -198,6 +254,18 @@ namespace EventBuster
 
 #if !Net35
 
+        /// <summary>
+        /// Triggers an event asynchronously.
+        /// </summary>
+        /// <typeparam name="TEvent">Event type</typeparam>
+        /// <param name="evt">Related data for the event</param>
+        /// <param name="token">A <see cref="System.Threading.CancellationToken"/> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        /// <remarks>
+        /// Multiple active operations on the same context instance are not supported. 
+        /// Use 'await' to ensure that any asynchronous operations have completed before calling another method on this context.
+        /// </remarks>
+        /// <exception cref="ArgumentNullException"><paramref name="evt"/> is null.</exception>
         public async System.Threading.Tasks.Task TriggerAsync<TEvent>(TEvent evt, System.Threading.CancellationToken token)
         {
             if (evt == null) throw new ArgumentNullException(nameof(evt));
@@ -256,6 +324,6 @@ namespace EventBuster
             }
         }
 
-        #endregion
+#endregion
     }
 }

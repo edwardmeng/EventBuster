@@ -112,10 +112,10 @@
     <value>2.0</value>
   </resheader>
   <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="ActionExecutor_UnexpectedTaskInstance" xml:space="preserve">
     <value>The method '{0}' on type '{1}' returned a Task instance even though it is not an asynchronous method.</value>
@@ -125,6 +125,9 @@
   </data>
   <data name="ActionMethod_CannotBeGeneric" xml:space="preserve">
     <value>The event handler method '{0}' on type '{1}' cannot be contains generic parameters.</value>
+  </data>
+  <data name="ActionMethod_CannotBeStatic" xml:space="preserve">
+    <value>The static event handler method '{0}' on type '{1}' cannot be registered with event handler instance.</value>
   </data>
   <data name="ActionMethod_CannotReturnValue" xml:space="preserve">
     <value>The return value of event handler method '{0}' on type '{1}' should be void or Task.</value>

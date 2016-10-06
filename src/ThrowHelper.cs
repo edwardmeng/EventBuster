@@ -21,6 +21,11 @@ namespace EventBuster
             throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Strings.ActionMethod_CannotReturnValue, method.Name, method.DeclaringType));
         }
 
+        public static void ThrowHandlerActionMethodCannotStaticException(MethodInfo method)
+        {
+            throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture,Strings.ActionMethod_CannotBeStatic, method.Name, method.DeclaringType));
+        }
+
         public static void ThrowHandlerActionMethodMustBeInputParameterException(MethodInfo method)
         {
             throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Strings.ActionMethod_MustBeInputParameter, method.Name, method.DeclaringType));

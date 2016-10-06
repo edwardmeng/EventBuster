@@ -71,6 +71,9 @@
     <Compile Include="..\..\..\src\Activate\TypeActivatorCache.cs">
       <Link>Activate\TypeActivatorCache.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\src\Invoker\HandlerActionInvoker.cs" >
+      <Link>Invoker\HandlerActionInvoker.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\src\CancelEvent.cs">
       <Link>CancelEvent.cs</Link>
     </Compile>

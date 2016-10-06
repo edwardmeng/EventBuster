@@ -52,6 +52,9 @@
     <Compile Include="..\..\..\src\Properties\AssemblyInfo.cs">
       <Link>Properties\AssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\src\Invoker\HandlerActionInvoker.cs" >
+      <Link>Invoker\HandlerActionInvoker.cs</Link>
+    </Compile>
     <None Include="..\..\..\EventBuster.snk">
       <Link>Properties\PowerMapper.snk</Link>
     </None>

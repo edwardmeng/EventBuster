@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace EventBuster
 {
+    /// <summary>
+    /// Encapsulates information about the event handler action execution environment.
+    /// </summary>
     public class HandlerActionContext
     {
         private readonly IDictionary<Type, object> _instancePool;
@@ -14,11 +17,18 @@ namespace EventBuster
             Services = serviceProvider;
         }
 
+        /// <summary>
+        /// Gets or sets the action descriptor.
+        /// </summary>
+        /// <value>The action descriptor.</value>
         public HandlerActionDescriptor ActionDescriptor { get; }
 
+        /// <summary>
+        /// Gets or sets the <see cref="IServiceProvider"/> that provides access to the service container. 
+        /// </summary>
         public IServiceProvider Services { get; }
 
-        public object GetInstance(Type type)
+        internal object GetInstance(Type type)
         {
             object instance;
             if (!_instancePool.TryGetValue(type, out instance))

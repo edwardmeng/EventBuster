@@ -7,9 +7,7 @@
 //     重新生成代码，这些更改将会丢失。
 // </auto-generated>
 //------------------------------------------------------------------------------
-
 using System.Reflection;
-
 namespace EventBuster {
     using System;
     
@@ -91,6 +89,15 @@ namespace EventBuster {
         internal static string ActionMethod_CannotBeGeneric {
             get {
                 return ResourceManager.GetString("ActionMethod_CannotBeGeneric", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 The static event handler method &apos;{0}&apos; on type &apos;{1}&apos; cannot be registered with event handler instance. 的本地化字符串。
+        /// </summary>
+        internal static string ActionMethod_CannotBeStatic {
+            get {
+                return ResourceManager.GetString("ActionMethod_CannotBeStatic", resourceCulture);
             }
         }
         
