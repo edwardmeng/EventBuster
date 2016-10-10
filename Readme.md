@@ -7,6 +7,7 @@ A lightweight event distribution and consumption for .net applications.
 Installing via NuGet!
 -----
         Install-Package EventBuster
+
 Supported platform:
 ------------------
 Microsoft .NET Framework 3.5<br/>
@@ -45,6 +46,7 @@ There are six kind legal convension methods, which should be annotated with the 
                 ......
             }
         }
+
 * Instance or static async method satisfy the following condition:
   1. There is only one input parameter, the type of parameter should be the strong type event argument.
   2. Its return value should be Task. 
@@ -65,6 +67,7 @@ There are six kind legal convension methods, which should be annotated with the 
                 ......
             }
         }
+
 * Instance or static async method satisfy the following condition:
   1. There are only two input parameters, the type of the first parameter should be the strong type event argument, 
      and the type of the second parameter should be CancellationToken.
@@ -86,6 +89,7 @@ There are six kind legal convension methods, which should be annotated with the 
                 ......
             }
         }
+
 ####Step3 Register event handlers
 * Register handler type via EventBus as the following sample code.
 
@@ -97,12 +101,69 @@ There are six kind legal convension methods, which should be annotated with the 
 
         var handler = new MyHandlers();
         EventBus.Register(handler);
+
   Then all the event handler action methods annotated with EventHandlerAttribute will be discovered. 
   And the registered instance will be used for instance event handler action method invocations directly.
 * Register automatically through install nuget package 
 
         Install-Package EventBuster.Activation
+
   Then event handlers in all assemblies for the application will be automatically registered while startup.
+
+####Step4 Trigger event
+
+* Trigger event synchronously
+        
+        var evt = new MyEvent{ Value = 25 };
+        EventBus.Trigger(evt);
+* Trigger event asynchronously
+        
+        var evt = new MyEvent{ Value = 25 };
+        await EventBus.TriggerAsync(evt);
+
+        or
+
+        var evt = new MyEvent{ Value = 25 };
+        await EventBus.TriggerAsync(evt, token);
 
 Advanced
 --------
+* Specify the priority of event handler action to control the invocation sequence of multiple event handler action methods for the same event.
+
+    For example
+
+        public class MyHandlers
+        {
+            [EventHandler(Priority = HandlerPriority.High)]
+            public void MyInstanceAction(MyEvent evt)
+            {
+                ......
+            }
+        }
+
+    There are five priority levels for the HandlerPriority enumeration: Highest, High, Normal, Low, Lowest. 
+    By default, the priority is Normal.
+* Control the transaction flow strategy when you are using TransactionScope (Not supported in NetCore now).
+
+    For example
+
+        public class MyHandlers
+        {
+            [EventHandler(TransactionFlow = TransactionFlowOption.Mandatory)]
+            public void MyInstanceAction(MyEvent evt)
+            {
+                ......
+            }
+        }
+
+    There are three strategies for the TransactionFlowOption enumeration:
+
+    * NotAllowed: The event handler action will not participate the transaction of event triggering point.
+    * Allowed: The event handler action will participate the trasaction of event triggering point, if there it is.
+    * Mandatory: The event handler action will participate the trasaction of event triggering point, if there it is.
+      Otherwise, the event bus will declare new transaction automatically.
+    
+    By default, the transaction flow strategy is Allowed.
+
+Customize
+-------
