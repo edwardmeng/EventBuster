@@ -167,3 +167,41 @@ Advanced
 
 Customize
 -------
+* Specify the service provider to instantiate the event handler class instances.
+
+    For example
+
+        EventBus.Default.SetServiceProvider(()=>{
+            ......
+            // create your own instance that implement IServiceProvider interface.
+            var services = new ServiceCollection();
+            services.Register<IHandlerActivator, ServiceBasedHandlerActivator>();
+            // register other services
+            ......
+            return services.AsProvider();
+        })
+* Register custom event handler action discover strategy to define your own method convensions.
+
+    For example
+    
+        public class MyDiscover : IHandlerActionDiscover
+        {
+            public IEnumerable<HandlerActionDescriptor> Discover(Type type)
+            {
+                ......
+            }
+
+            public IEnumerable<HandlerActionDescriptor> Discover(object instance)
+            {
+                ......
+            }
+        }
+
+    Then you can register the discover strategy as:
+
+        EventBus.Default.Discovers.Add(new MyDiscover());
+
+License
+------
+EventBuster is Open Source software and it is released under the MIT license.
+The licenses allow the use of EventBuster in free and commercial applications and libraries without restrictions.
